@@ -24,8 +24,8 @@ public class StringBuilder {
         addComa = addIndent = true;
     }
 
-    public void openObject() {
-        appendln("{");
+    public void openObject(final Object obj) {
+        appendln((obj == null ? "" : obj.getClass().getSimpleName()) + "{");
         addComa = false;
         indentLevel += 4;
         isEmpty = true;

@@ -1,140 +1,41 @@
 package fr.neatmonster.neatjvm;
 
-import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.neatmonster.neatjvm.utils.StringBuilder;
+import fr.neatmonster.neatjvm.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class ClassFile {
-    public class AttributeInfo {
-        private final short attributeNameIndex;
-        private final int   attributeLength;
-
-        public AttributeInfo(final ByteBuffer buf) {
-            attributeNameIndex = buf.getShort();
-            attributeLength = buf.getInt();
-
-            // TODO: Read specific attributes
-            buf.position(buf.position() + attributeLength);
-        }
-
-        public void toString(final StringBuilder s) {
-            s.openObject(this);
-            s.appendln("attributeNameIndex: " + attributeNameIndex);
-            s.appendln("attributeLength: " + attributeLength);
-            s.closeObject();
-        }
-    }
-
-    public class FieldInfo {
-        private final short           accessFlags;
-        private final short           nameIndex;
-        private final short           descriptorIndex;
-        private final AttributeInfo[] attributes;
-
-        public FieldInfo(final ByteBuffer buf) {
-            accessFlags = buf.getShort();
-            nameIndex = buf.getShort();
-            descriptorIndex = buf.getShort();
-
-            final short attributesCount = buf.getShort();
-            attributes = new AttributeInfo[attributesCount];
-            for (int i = 0; i < attributes.length; ++i)
-                attributes[i] = new AttributeInfo(buf);
-        }
-
-        public void toString(final StringBuilder s) {
-            s.openObject(this);
-
-            final List<String> flags = new ArrayList<>();
-            for (final AccessFlag flag : AccessFlag.values())
-                if (flag.field && (accessFlags & flag.value) > 0)
-                    flags.add(flag.name());
-            s.appendln("accessFlags: " + Arrays.asList(flags.toArray()));
-
-            s.appendln("nameIndex: " + nameIndex);
-            s.appendln("descriptorIndex: " + descriptorIndex);
-
-            s.append("attributes: ");
-            s.openArray();
-            for (final AttributeInfo attribute : attributes)
-                attribute.toString(s);
-            s.closeArray();
-            s.closeObject();
-        }
-    }
-
-    public class MethodInfo {
-        private final short           accessFlags;
-        private final short           nameIndex;
-        private final short           descriptorIndex;
-        private final AttributeInfo[] attributes;
-
-        public MethodInfo(final ByteBuffer buf) {
-            accessFlags = buf.getShort();
-            nameIndex = buf.getShort();
-            descriptorIndex = buf.getShort();
-
-            final short attributesCount = buf.getShort();
-            attributes = new AttributeInfo[attributesCount];
-            for (int i = 0; i < attributes.length; ++i)
-                attributes[i] = new AttributeInfo(buf);
-        }
-
-        public void toString(final StringBuilder s) {
-            s.openObject(this);
-
-            final List<String> flags = new ArrayList<>();
-            for (final AccessFlag flag : AccessFlag.values())
-                if (flag.method && (accessFlags & flag.value) > 0)
-                    flags.add(flag.name());
-            s.appendln("accessFlags: " + Arrays.asList(flags.toArray()));
-
-            s.appendln("nameIndex: " + nameIndex);
-            s.appendln("descriptorIndex: " + descriptorIndex);
-
-            s.append("attributes: ");
-            s.openArray();
-            for (final AttributeInfo attribute : attributes)
-                attribute.toString(s);
-            s.closeArray();
-            s.closeObject();
-        }
-    }
-
-    private final int             magic;
-    private final short           minorVersion;
-    private final short           majorVersion;
-    private final short           constantPoolCount;
-    private final ConstantInfo[]  constantPool;
-    private final short           accessFlags;
-    private final short           thisClass;
-    private final short           superClass;
-    private final short           interfacesCount;
-    private final short[]         interfaces;
-    private final short           fieldsCount;
-    private final FieldInfo[]     fields;
-    private final short           methodsCount;
-    private final MethodInfo[]    methods;
-    private final short           attributesCount;
-    private final AttributeInfo[] attributes;
+    public final int             magic;
+    public final short           minorVersion;
+    public final short           majorVersion;
+    public final ConstantInfo[]  constants;
+    public final short           accessFlags;
+    public final short           thisClass;
+    public final short           superClass;
+    public final short[]         interfaces;
+    public final FieldInfo[]     fields;
+    public final MethodInfo[]    methods;
+    public final AttributeInfo[] attributes;
 
     public ClassFile(final ByteBuffer buf) {
         magic = buf.getInt();
         minorVersion = buf.getShort();
         majorVersion = buf.getShort();
 
-        constantPoolCount = buf.getShort();
-        constantPool = new ConstantInfo[constantPoolCount - 1];
-        for (int i = 0; i < constantPool.length; ++i) {
-            final byte tag = buf.get();
+        final short constantsCount = buf.getShort();
+        constants = new ConstantInfo[constantsCount - 1];
+        for (int i = 0; i < constants.length; ++i) {
+            final int tag = buf.get();
             try {
-                final Class<?> clazz = ConstantInfo.LOOKUP_TABLE[tag - 1];
-                final Constructor<?> construct = clazz.getConstructor(ByteBuffer.class);
-                constantPool[i] = (ConstantInfo) construct.newInstance(buf);
+                final Class<? extends ConstantInfo> clazz = ConstantInfo.ALL.get(tag);
+                if (clazz == null)
+                    System.err.println("Unrecognized constant info w/ tag " + tag);
+                else
+                    constants[i] = clazz.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(this, buf);
             } catch (final Exception e) {
                 e.printStackTrace(System.err);
                 System.exit(0);
@@ -145,39 +46,54 @@ public class ClassFile {
         thisClass = buf.getShort();
         superClass = buf.getShort();
 
-        interfacesCount = buf.getShort();
+        final short interfacesCount = buf.getShort();
         interfaces = new short[interfacesCount];
         for (int i = 0; i < interfaces.length; ++i)
             interfaces[i] = buf.getShort();
 
-        fieldsCount = buf.getShort();
+        final short fieldsCount = buf.getShort();
         fields = new FieldInfo[fieldsCount];
         for (int i = 0; i < fields.length; ++i)
-            fields[i] = new FieldInfo(buf);
+            fields[i] = new FieldInfo(this, buf);
 
-        methodsCount = buf.getShort();
+        final short methodsCount = buf.getShort();
         methods = new MethodInfo[methodsCount];
         for (int i = 0; i < methods.length; ++i)
-            methods[i] = new MethodInfo(buf);
+            methods[i] = new MethodInfo(this, buf);
 
-        attributesCount = buf.getShort();
+        final short attributesCount = buf.getShort();
         attributes = new AttributeInfo[attributesCount];
-        for (int i = 0; i < attributes.length; ++i)
-            attributes[i] = new AttributeInfo(buf);
+        for (int i = 0; i < attributes.length; ++i) {
+            final short index = buf.getShort();
+            final int length = buf.getInt();
+            try {
+                final String name = ((Utf8Constant) constants[index - 1]).value;
+                final Class<? extends AttributeInfo> clazz = AttributeInfo.ALL.get(name);
+                if (clazz == null) {
+                    System.err.println("Unrecognized attribute info w/ name " + name);
+                    buf.position(buf.position() + length);
+                } else
+                    attributes[i] = clazz.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(this, buf);
+            } catch (final Exception e) {
+                e.printStackTrace(System.err);
+                System.exit(0);
+            }
+        }
     }
 
     public void toString(final StringBuilder s) {
         s.openObject(this);
+
         s.appendln("magic: 0x" + Integer.toHexString(magic));
         s.appendln("version: " + majorVersion + "." + minorVersion);
 
-        s.append("constantPool: ");
+        s.append("constants: ");
         s.openArray();
-        for (final ConstantInfo element : constantPool) {
-            if (element == null)
+        for (final ConstantInfo constant : constants) {
+            if (constant == null)
                 s.appendln("null");
             else
-                element.toString(s);
+                constant.toString(s);
         }
         s.closeArray();
 
@@ -206,8 +122,12 @@ public class ClassFile {
 
         s.append("attributes: ");
         s.openArray();
-        for (final AttributeInfo attribute : attributes)
-            attribute.toString(s);
+        for (final AttributeInfo attribute : attributes) {
+            if (attribute == null)
+                s.appendln("null");
+            else
+                attribute.toString(s);
+        }
         s.closeArray();
 
         s.closeObject();

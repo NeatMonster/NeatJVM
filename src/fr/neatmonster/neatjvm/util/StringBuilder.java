@@ -1,4 +1,4 @@
-package fr.neatmonster.neatjvm.utils;
+package fr.neatmonster.neatjvm.util;
 
 public class StringBuilder {
     private final java.lang.StringBuilder builder     = new java.lang.StringBuilder();

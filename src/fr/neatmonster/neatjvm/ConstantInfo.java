@@ -1,241 +1,50 @@
 package fr.neatmonster.neatjvm;
 
-import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
-import fr.neatmonster.neatjvm.utils.StringBuilder;
+import fr.neatmonster.neatjvm.constant.ClassConstant;
+import fr.neatmonster.neatjvm.constant.DoubleConstant;
+import fr.neatmonster.neatjvm.constant.FieldrefConstant;
+import fr.neatmonster.neatjvm.constant.FloatConstant;
+import fr.neatmonster.neatjvm.constant.IntegerConstant;
+import fr.neatmonster.neatjvm.constant.InterfaceMethodrefConstant;
+import fr.neatmonster.neatjvm.constant.InvokeDynamicConstant;
+import fr.neatmonster.neatjvm.constant.LongConstant;
+import fr.neatmonster.neatjvm.constant.MethodHandlerConstant;
+import fr.neatmonster.neatjvm.constant.MethodeTypeConstant;
+import fr.neatmonster.neatjvm.constant.MethodrefConstant;
+import fr.neatmonster.neatjvm.constant.NameAndTypeConstant;
+import fr.neatmonster.neatjvm.constant.StringConstant;
+import fr.neatmonster.neatjvm.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public abstract class ConstantInfo {
-    public static class ConstantClassInfo extends ConstantInfo {
-        private final short nameIndex;
+    // @formatter:off
+    @SuppressWarnings("serial")
+    public static Map<Integer, Class<? extends ConstantInfo>> ALL = new HashMap<Integer, Class<? extends ConstantInfo>>() {{
+        put(1, Utf8Constant.class);
+        put(3, IntegerConstant.class);
+        put(4, FloatConstant.class);
+        put(5, LongConstant.class);
+        put(6, DoubleConstant.class);
+        put(7, ClassConstant.class);
+        put(8, StringConstant.class);
+        put(9, FieldrefConstant.class);
+        put(10, MethodrefConstant.class);
+        put(11, InterfaceMethodrefConstant.class);
+        put(12, NameAndTypeConstant.class);
+        put(15, MethodHandlerConstant.class);
+        put(16, MethodeTypeConstant.class);
+        put(18, InvokeDynamicConstant.class);
+    }};
+    // @formatter:on
 
-        public ConstantClassInfo(final ByteBuffer buf) {
-            nameIndex = buf.getShort();
-        }
+    public final ClassFile                                    classFile;
 
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("nameIndex: " + nameIndex);
-        }
+    public ConstantInfo(final ClassFile classFile) {
+        this.classFile = classFile;
     }
-
-    public static class ConstantFieldrefInfo extends ConstantInfo {
-        private final short classIndex;
-        private final short nameAndTypeIndex;
-
-        public ConstantFieldrefInfo(final ByteBuffer buf) {
-            classIndex = buf.getShort();
-            nameAndTypeIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("classIndex: " + classIndex);
-            s.appendln("nameAndTypeIndex: " + nameAndTypeIndex);
-        }
-    }
-
-    public static class ConstantMethodrefInfo extends ConstantInfo {
-        private final short classIndex;
-        private final short nameAndTypeIndex;
-
-        public ConstantMethodrefInfo(final ByteBuffer buf) {
-            classIndex = buf.getShort();
-            nameAndTypeIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("classIndex: " + classIndex);
-            s.appendln("nameAndTypeIndex: " + nameAndTypeIndex);
-        }
-    }
-
-    public static class ConstantInterfaceMethodrefInfo extends ConstantInfo {
-        private final short classIndex;
-        private final short nameAndTypeIndex;
-
-        public ConstantInterfaceMethodrefInfo(final ByteBuffer buf) {
-            classIndex = buf.getShort();
-            nameAndTypeIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("classIndex: " + classIndex);
-            s.appendln("nameAndTypeIndex: " + nameAndTypeIndex);
-        }
-    }
-
-    public static class ConstantStringInfo extends ConstantInfo {
-        private final short stringIndex;
-
-        public ConstantStringInfo(final ByteBuffer buf) {
-            stringIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("stringIndex: " + stringIndex);
-        }
-    }
-
-    public static class ConstantIntegerInfo extends ConstantInfo {
-        private final int value;
-
-        public ConstantIntegerInfo(final ByteBuffer buf) {
-            value = buf.getInt();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("value: " + value);
-        }
-    }
-
-    public static class ConstantFloatInfo extends ConstantInfo {
-        private final float value;
-
-        public ConstantFloatInfo(final ByteBuffer buf) {
-            value = buf.getFloat();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("value: " + value);
-        }
-    }
-
-    public static class ConstantLongInfo extends ConstantInfo {
-        private final long value;
-
-        public ConstantLongInfo(final ByteBuffer buf) {
-            final ByteBuffer bufLoc = ByteBuffer.allocate(8);
-            bufLoc.putInt(buf.getInt());
-            bufLoc.putInt(buf.getInt());
-            value = bufLoc.getLong(0);
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("value: " + value);
-        }
-    }
-
-    public static class ConstantDoubleInfo extends ConstantInfo {
-        private final double value;
-
-        public ConstantDoubleInfo(final ByteBuffer buf) {
-            final ByteBuffer bufLoc = ByteBuffer.allocate(8);
-            bufLoc.putInt(buf.getInt());
-            bufLoc.putInt(buf.getInt());
-            value = bufLoc.getDouble(0);
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("value: " + value);
-        }
-    }
-
-    public static class ConstantNameAndTypeInfo extends ConstantInfo {
-        private final short nameIndex;
-        private final short descriptorIndex;
-
-        public ConstantNameAndTypeInfo(final ByteBuffer buf) {
-            nameIndex = buf.getShort();
-            descriptorIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("nameIndex: " + nameIndex);
-            s.appendln("descriptorIndex: " + descriptorIndex);
-        }
-    }
-
-    public static class ConstantUtf8Info extends ConstantInfo {
-        private final String value;
-
-        public ConstantUtf8Info(final ByteBuffer buf) {
-            final short length = buf.getShort();
-            final byte[] bytes = new byte[length];
-            buf.get(bytes);
-            value = new String(bytes);
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("value: \"" + value + "\"");
-        }
-    }
-
-    public static class ConstantMethodHandleInfo extends ConstantInfo {
-        private final byte  referenceKind;
-        private final short referenceIndex;
-
-        public ConstantMethodHandleInfo(final ByteBuffer buf) {
-            referenceKind = buf.get();
-            referenceIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("referenceKind: " + referenceKind);
-            s.appendln("referenceIndex: " + referenceIndex);
-        }
-    }
-
-    public static class ConstantMethodTypeInfo extends ConstantInfo {
-        private final short descriptorIndex;
-
-        public ConstantMethodTypeInfo(final ByteBuffer buf) {
-            descriptorIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("descriptorIndex: " + descriptorIndex);
-        }
-    }
-
-    public static class ConstantInvokeDynamicInfo extends ConstantInfo {
-        private final short bootstrapMethodAttrIndex;
-        private final short nameAndTypeIndex;
-
-        public ConstantInvokeDynamicInfo(final ByteBuffer buf) {
-            bootstrapMethodAttrIndex = buf.getShort();
-            nameAndTypeIndex = buf.getShort();
-        }
-
-        @Override
-        public void toString2(final StringBuilder s) {
-            s.appendln("bootstrapMethodAttrIndex: " + bootstrapMethodAttrIndex);
-            s.appendln("nameAndTypeIndex: " + nameAndTypeIndex);
-        }
-    }
-
-    public static Class<?>[] LOOKUP_TABLE = new Class<?>[] {
-        // @formatter:off
-        ConstantUtf8Info.class,
-        null,
-        ConstantIntegerInfo.class,
-        ConstantFloatInfo.class,
-        ConstantLongInfo.class,
-        ConstantDoubleInfo.class,
-        ConstantClassInfo.class,
-        ConstantStringInfo.class,
-        ConstantFieldrefInfo.class,
-        ConstantMethodrefInfo.class,
-        ConstantInterfaceMethodrefInfo.class,
-        ConstantNameAndTypeInfo.class,
-        null,
-        null,
-        ConstantMethodHandleInfo.class,
-        ConstantMethodTypeInfo.class,
-        null,
-        ConstantInvokeDynamicInfo.class
-        // @formatter:on
-    };
 
     public void toString(final StringBuilder s) {
         s.openObject(this);

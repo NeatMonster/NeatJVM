@@ -1,11 +1,12 @@
-package fr.neatmonster.neatjvm;
+package fr.neatmonster.neatjvm.format;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.neatmonster.neatjvm.attribute.CodeAttribute;
-import fr.neatmonster.neatjvm.attribute.ConstantValueAttribute;
-import fr.neatmonster.neatjvm.attribute.ExceptionsAttribute;
+import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
+import fr.neatmonster.neatjvm.format.attribute.ConstantValueAttribute;
+import fr.neatmonster.neatjvm.format.attribute.ExceptionsAttribute;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public abstract class AttributeInfo {

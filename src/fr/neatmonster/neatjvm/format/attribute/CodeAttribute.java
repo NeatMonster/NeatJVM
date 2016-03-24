@@ -1,11 +1,11 @@
-package fr.neatmonster.neatjvm.attribute;
+package fr.neatmonster.neatjvm.format.attribute;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import fr.neatmonster.neatjvm.AttributeInfo;
 import fr.neatmonster.neatjvm.ClassFile;
-import fr.neatmonster.neatjvm.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.format.AttributeInfo;
+import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class CodeAttribute extends AttributeInfo {
@@ -61,7 +61,7 @@ public class CodeAttribute extends AttributeInfo {
             final short index = buf.getShort();
             final int length = buf.getInt();
             try {
-                final String name = ((Utf8Constant) classFile.constants[index - 1]).value;
+                final String name = classFile.constants.getUtf8(index);
                 final Class<? extends AttributeInfo> clazz = AttributeInfo.ALL.get(name);
                 if (clazz == null) {
                     System.err.println("Unrecognized attribute info w/ name " + name);

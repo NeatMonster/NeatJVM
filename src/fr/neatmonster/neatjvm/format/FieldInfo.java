@@ -1,21 +1,22 @@
-package fr.neatmonster.neatjvm;
+package fr.neatmonster.neatjvm.format;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.neatmonster.neatjvm.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
-public class MethodInfo {
+public class FieldInfo {
     public final ClassFile       classFile;
     public final short           accessFlags;
     public final short           nameIndex;
     public final short           descriptorIndex;
     public final AttributeInfo[] attributes;
 
-    public MethodInfo(final ClassFile classFile, final ByteBuffer buf) {
+    public FieldInfo(final ClassFile classFile, final ByteBuffer buf) {
         this.classFile = classFile;
 
         accessFlags = buf.getShort();
@@ -28,7 +29,7 @@ public class MethodInfo {
             final short index = buf.getShort();
             final int length = buf.getInt();
             try {
-                final String name = ((Utf8Constant) classFile.constants[index - 1]).value;
+                final String name = classFile.constants.getUtf8(index);
                 final Class<? extends AttributeInfo> clazz = AttributeInfo.ALL.get(name);
                 if (clazz == null) {
                     System.err.println("Unrecognized attribute info w/ name " + name);
@@ -47,7 +48,7 @@ public class MethodInfo {
 
         final List<String> flags = new ArrayList<>();
         for (final AccessFlag flag : AccessFlag.values())
-            if (flag.method && (accessFlags & flag.value) > 0)
+            if (flag.field && (accessFlags & flag.value) > 0)
                 flags.add(flag.name());
         s.appendln("accessFlags: " + Arrays.asList(flags.toArray()));
 

@@ -1,9 +1,9 @@
-package fr.neatmonster.neatjvm.attribute;
+package fr.neatmonster.neatjvm.format.attribute;
 
 import java.nio.ByteBuffer;
 
-import fr.neatmonster.neatjvm.AttributeInfo;
 import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.format.AttributeInfo;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class ConstantValueAttribute extends AttributeInfo {

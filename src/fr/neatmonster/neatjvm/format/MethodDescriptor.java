@@ -1,10 +1,10 @@
-package fr.neatmonster.neatjvm;
+package fr.neatmonster.neatjvm.format;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.neatmonster.neatjvm.FieldDescriptor.FieldType;
+import fr.neatmonster.neatjvm.format.FieldDescriptor.FieldType;
 
 public class MethodDescriptor {
     public final FieldType[] parametersType;

@@ -1,9 +1,9 @@
-package fr.neatmonster.neatjvm.constant;
+package fr.neatmonster.neatjvm.format.constant;
 
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
-import fr.neatmonster.neatjvm.ConstantInfo;
+import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class InvokeDynamicConstant extends ConstantInfo {

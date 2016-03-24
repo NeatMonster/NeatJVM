@@ -1,4 +1,4 @@
-package fr.neatmonster.neatjvm;
+package fr.neatmonster.neatjvm.format;
 
 import java.nio.ByteBuffer;
 

@@ -1,22 +1,23 @@
-package fr.neatmonster.neatjvm;
+package fr.neatmonster.neatjvm.format;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.neatmonster.neatjvm.constant.ClassConstant;
-import fr.neatmonster.neatjvm.constant.DoubleConstant;
-import fr.neatmonster.neatjvm.constant.FieldrefConstant;
-import fr.neatmonster.neatjvm.constant.FloatConstant;
-import fr.neatmonster.neatjvm.constant.IntegerConstant;
-import fr.neatmonster.neatjvm.constant.InterfaceMethodrefConstant;
-import fr.neatmonster.neatjvm.constant.InvokeDynamicConstant;
-import fr.neatmonster.neatjvm.constant.LongConstant;
-import fr.neatmonster.neatjvm.constant.MethodHandlerConstant;
-import fr.neatmonster.neatjvm.constant.MethodeTypeConstant;
-import fr.neatmonster.neatjvm.constant.MethodrefConstant;
-import fr.neatmonster.neatjvm.constant.NameAndTypeConstant;
-import fr.neatmonster.neatjvm.constant.StringConstant;
-import fr.neatmonster.neatjvm.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.format.constant.ClassConstant;
+import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
+import fr.neatmonster.neatjvm.format.constant.FieldrefConstant;
+import fr.neatmonster.neatjvm.format.constant.FloatConstant;
+import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
+import fr.neatmonster.neatjvm.format.constant.InterfaceMethodrefConstant;
+import fr.neatmonster.neatjvm.format.constant.InvokeDynamicConstant;
+import fr.neatmonster.neatjvm.format.constant.LongConstant;
+import fr.neatmonster.neatjvm.format.constant.MethodHandlerConstant;
+import fr.neatmonster.neatjvm.format.constant.MethodeTypeConstant;
+import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
+import fr.neatmonster.neatjvm.format.constant.NameAndTypeConstant;
+import fr.neatmonster.neatjvm.format.constant.StringConstant;
+import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public abstract class ConstantInfo {

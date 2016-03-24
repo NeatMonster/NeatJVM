@@ -5,14 +5,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.neatmonster.neatjvm.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.format.AccessFlag;
+import fr.neatmonster.neatjvm.format.AttributeInfo;
+import fr.neatmonster.neatjvm.format.FieldInfo;
+import fr.neatmonster.neatjvm.format.MethodInfo;
+import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class ClassFile {
     public final int             magic;
     public final short           minorVersion;
     public final short           majorVersion;
-    public final ConstantInfo[]  constants;
+    public final ConstantPool    constants;
     public final short           accessFlags;
     public final short           thisClass;
     public final short           superClass;
@@ -21,26 +25,12 @@ public class ClassFile {
     public final MethodInfo[]    methods;
     public final AttributeInfo[] attributes;
 
-    public ClassFile(final ByteBuffer buf) {
+    public ClassFile(final ClassLoader classLoader, final ByteBuffer buf) {
         magic = buf.getInt();
         minorVersion = buf.getShort();
         majorVersion = buf.getShort();
 
-        final short constantsCount = buf.getShort();
-        constants = new ConstantInfo[constantsCount - 1];
-        for (int i = 0; i < constants.length; ++i) {
-            final int tag = buf.get();
-            try {
-                final Class<? extends ConstantInfo> clazz = ConstantInfo.ALL.get(tag);
-                if (clazz == null)
-                    System.err.println("Unrecognized constant info w/ tag " + tag);
-                else
-                    constants[i] = clazz.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(this, buf);
-            } catch (final Exception e) {
-                e.printStackTrace(System.err);
-                System.exit(0);
-            }
-        }
+        constants = new ConstantPool(this, buf);
 
         accessFlags = buf.getShort();
         thisClass = buf.getShort();
@@ -67,7 +57,7 @@ public class ClassFile {
             final short index = buf.getShort();
             final int length = buf.getInt();
             try {
-                final String name = ((Utf8Constant) constants[index - 1]).value;
+                final String name = constants.getUtf8(index);
                 final Class<? extends AttributeInfo> clazz = AttributeInfo.ALL.get(name);
                 if (clazz == null) {
                     System.err.println("Unrecognized attribute info w/ name " + name);
@@ -81,25 +71,26 @@ public class ClassFile {
         }
     }
 
+    public CodeAttribute getMainMethod() {
+        for (final MethodInfo method : methods)
+            if (constants.getUtf8(method.nameIndex).equals("main"))
+                for (final AttributeInfo attribute : method.attributes)
+                    if (attribute instanceof CodeAttribute)
+                        return (CodeAttribute) attribute;
+        return null;
+    }
+
     public void toString(final StringBuilder s) {
         s.openObject(this);
 
         s.appendln("magic: 0x" + Integer.toHexString(magic));
         s.appendln("version: " + majorVersion + "." + minorVersion);
 
-        s.append("constants: ");
-        s.openArray();
-        for (final ConstantInfo constant : constants) {
-            if (constant == null)
-                s.appendln("null");
-            else
-                constant.toString(s);
-        }
-        s.closeArray();
+        constants.toString(s);
 
         final List<String> flags = new ArrayList<>();
         for (final AccessFlag flag : AccessFlag.values())
-            if (flag.clazz && (accessFlags & flag.value) > 0)
+            if (flag.clazz && flag.eval(accessFlags))
                 flags.add(flag.name());
         s.appendln("accessFlags: " + Arrays.asList(flags.toArray()));
 

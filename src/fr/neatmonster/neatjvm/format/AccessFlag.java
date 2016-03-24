@@ -1,4 +1,4 @@
-package fr.neatmonster.neatjvm;
+package fr.neatmonster.neatjvm.format;
 
 public enum AccessFlag {
     // @formatter:off
@@ -16,7 +16,7 @@ public enum AccessFlag {
     NATIVE(      0x0100, false, false,  true),
     INTERFACE(   0x0200,  true, false, false),
     ABSTRACT(    0x0400,  true, false,  true),
-    STRICT(      0x0800, false, false, true),
+    STRICT(      0x0800, false, false,  true),
     SYNTHETIC(   0x1000,  true,  true,  true),
     ANNOTATION(  0x2000,  true, false, false),
     ENUM(        0x4000,  true,  true, false);
@@ -32,5 +32,9 @@ public enum AccessFlag {
         this.clazz = clazz;
         this.field = field;
         this.method = method;
+    }
+    
+    public boolean eval(final short accessFlags) {
+        return (accessFlags & value) > 0;
     }
 }

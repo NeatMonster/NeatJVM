@@ -1,16 +1,16 @@
-package fr.neatmonster.neatjvm.constant;
+package fr.neatmonster.neatjvm.format.constant;
 
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
-import fr.neatmonster.neatjvm.ConstantInfo;
+import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
-public class FieldrefConstant extends ConstantInfo {
+public class InterfaceMethodrefConstant extends ConstantInfo {
     public final short classIndex;
     public final short nameAndTypeIndex;
 
-    public FieldrefConstant(final ClassFile classFile, final ByteBuffer buf) {
+    public InterfaceMethodrefConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
         classIndex = buf.getShort();

@@ -261,27 +261,37 @@ public class Thread {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
                 frame.pushInt(value1 - value2);
-            	break ;
+                break;
             }
             case 0x6c: // idiv
             {
                 final int value2 = frame.popInt();
+                if (value2 == 0) {
+                    // TODO: Throw ArithmeticException
+                    System.err.println("ArithmeticException");
+                    System.exit(0);
+                }
                 final int value1 = frame.popInt();
                 frame.pushInt(value1 / value2);
-            	break ;
+                break;
             }
             case 0x70: // irem
             {
                 final int value2 = frame.popInt();
+                if (value2 == 0) {
+                    // TODO: Throw ArithmeticException
+                    System.err.println("ArithmeticException");
+                    System.exit(0);
+                }
                 final int value1 = frame.popInt();
-                frame.pushInt(1 - (value1 / value2) * value2);
-            	break ;
+                frame.pushInt(value1 % value2);
+                break;
             }
             case 0x74: // ineg
             {
                 final int value1 = frame.popInt();
                 frame.pushInt(-value1);
-            	break ;
+                break;
             }
             // CONVERSIONS
             // COMPARISONS

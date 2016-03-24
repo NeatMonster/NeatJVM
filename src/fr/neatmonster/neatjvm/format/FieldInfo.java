@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.neatmonster.neatjvm.ClassFile;
-import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class FieldInfo {
@@ -15,6 +14,9 @@ public class FieldInfo {
     public final short           nameIndex;
     public final short           descriptorIndex;
     public final AttributeInfo[] attributes;
+
+    public String                name;
+    public FieldDescriptor       descriptor;
 
     public FieldInfo(final ClassFile classFile, final ByteBuffer buf) {
         this.classFile = classFile;
@@ -41,6 +43,21 @@ public class FieldInfo {
                 System.exit(0);
             }
         }
+    }
+
+    public void resolve() {
+        name = classFile.constants.getUtf8(nameIndex);
+        String descriptorStr = classFile.constants.getUtf8(descriptorIndex);
+        try {
+            descriptor = new FieldDescriptor(descriptorStr);
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            System.exit(0);
+        }
+    }
+    
+    public boolean isResolved() {
+        return name != null;
     }
 
     public void toString(final StringBuilder s) {

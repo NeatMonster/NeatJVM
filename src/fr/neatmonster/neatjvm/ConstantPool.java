@@ -3,6 +3,7 @@ package fr.neatmonster.neatjvm;
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.format.ConstantInfo;
+import fr.neatmonster.neatjvm.format.constant.ClassConstant;
 import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
@@ -26,6 +27,10 @@ public class ConstantPool {
                 System.exit(0);
             }
         }
+    }
+
+    public ClassConstant getClass(final int index) {
+        return (ClassConstant) constants[index - 1];
     }
 
     public String getUtf8(final int index) {

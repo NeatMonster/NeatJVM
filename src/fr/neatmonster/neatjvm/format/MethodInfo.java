@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.neatmonster.neatjvm.ClassFile;
-import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class MethodInfo {
@@ -15,6 +15,10 @@ public class MethodInfo {
     public final short           nameIndex;
     public final short           descriptorIndex;
     public final AttributeInfo[] attributes;
+    
+    public String name;
+    public MethodDescriptor descriptor;
+    public CodeAttribute code;
 
     public MethodInfo(final ClassFile classFile, final ByteBuffer buf) {
         this.classFile = classFile;
@@ -41,6 +45,33 @@ public class MethodInfo {
                 System.exit(0);
             }
         }
+    }
+
+    /*public CodeAttribute getCode() {
+        for (AttributeInfo attribute : attributes)
+            if (attribute instanceof CodeAttribute)
+                return (CodeAttribute) attribute;
+        return null;
+    }*/
+    
+    public void resolve() {
+        name = classFile.constants.getUtf8(nameIndex);
+        String descriptorStr = classFile.constants.getUtf8(descriptorIndex);
+        try {
+            descriptor = new MethodDescriptor(descriptorStr);
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            System.exit(0);
+        }
+        for (AttributeInfo attribute : attributes)
+            if (attribute instanceof CodeAttribute) {
+                code = (CodeAttribute) attribute;
+                break;
+            }
+    }
+    
+    public boolean isResolved() {
+        return name != null;
     }
 
     public void toString(final StringBuilder s) {

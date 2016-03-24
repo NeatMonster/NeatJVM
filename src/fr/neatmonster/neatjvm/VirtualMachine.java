@@ -1,13 +1,11 @@
 package fr.neatmonster.neatjvm;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
+import fr.neatmonster.neatjvm.format.AccessFlag;
+import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
 public class VirtualMachine {
@@ -21,22 +19,29 @@ public class VirtualMachine {
     public Thread            mainThread;
     public Thread            currentThread;
     public ExecutionPool     executionPool;
+    public HandlePool        handlePool;
 
     public VirtualMachine() {
         heapSpace = new HeapSpace(this, MAX_HEAP_SIZE);
         stackSpace = new HeapSpace(this, MAX_STACK_SIZE);
 
         classLoaders = new ArrayList<>();
-        classLoaders.add(classLoader = new ClassLoader(this));
+        classLoaders.add(classLoader = new ClassLoader(this, null));
 
         executionPool = new ExecutionPool(this);
-        mainThread = currentThread = null;
+        handlePool = new HandlePool(this);
     }
 
-    public void start(final File file) throws IOException {
-        final byte[] bytes = Files.readAllBytes(file.toPath());
-        final ClassFile clazz = new ClassFile(classLoader, ByteBuffer.wrap(bytes));
-        mainThread = runThread(clazz.getMainMethod(), ThreadPriority.MIN_PRIORITY);
+    public void start(final String className) {
+        final ClassFile classFile = classLoader.loadClass(className);
+        final MethodInfo main = classFile.getMethod("main", "([Ljava/lang/String;)V", AccessFlag.PUBLIC,
+                AccessFlag.STATIC);
+        for (final MethodInfo method : classFile.methods)
+            if (!method.isResolved())
+                method.resolve();
+        if (!main.isResolved())
+            main.resolve();
+        mainThread = runThread(main.code, null, ThreadPriority.NORM_PRIORITY);
         run();
     }
 
@@ -49,9 +54,9 @@ public class VirtualMachine {
         }
     }
 
-    public Thread runThread(final CodeAttribute code, final ThreadPriority priority) {
+    public Thread runThread(final CodeAttribute code, final InstanceData instance, final ThreadPriority priority) {
         final Thread thread = new Thread(this, executionPool.getNextThreadId());
-        thread.start(code);
+        thread.start(code, instance);
         executionPool.addThread(thread, priority);
         return thread;
     }

@@ -1,5 +1,6 @@
 package fr.neatmonster.neatjvm.format;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,9 @@ public class MethodDescriptor {
     public final FieldType[] parametersType;
     public final FieldType   returnType;
 
-    public MethodDescriptor(final ByteBuffer buf) {
+    public MethodDescriptor(final String str) throws UnsupportedEncodingException {
+        ByteBuffer buf = ByteBuffer.wrap(str.getBytes("UTF-16BE"));
+        
         buf.getChar();
 
         final List<FieldType> types = new ArrayList<>();

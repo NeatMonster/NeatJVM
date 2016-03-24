@@ -13,7 +13,7 @@ import fr.neatmonster.neatjvm.format.constant.InterfaceMethodrefConstant;
 import fr.neatmonster.neatjvm.format.constant.InvokeDynamicConstant;
 import fr.neatmonster.neatjvm.format.constant.LongConstant;
 import fr.neatmonster.neatjvm.format.constant.MethodHandlerConstant;
-import fr.neatmonster.neatjvm.format.constant.MethodeTypeConstant;
+import fr.neatmonster.neatjvm.format.constant.MethodTypeConstant;
 import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
 import fr.neatmonster.neatjvm.format.constant.NameAndTypeConstant;
 import fr.neatmonster.neatjvm.format.constant.StringConstant;
@@ -36,7 +36,7 @@ public abstract class ConstantInfo {
         put(11, InterfaceMethodrefConstant.class);
         put(12, NameAndTypeConstant.class);
         put(15, MethodHandlerConstant.class);
-        put(16, MethodeTypeConstant.class);
+        put(16, MethodTypeConstant.class);
         put(18, InvokeDynamicConstant.class);
     }};
     // @formatter:on

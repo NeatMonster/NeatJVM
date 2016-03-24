@@ -6,10 +6,10 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
-public class MethodeTypeConstant extends ConstantInfo {
+public class MethodTypeConstant extends ConstantInfo {
     public final short descriptorIndex;
 
-    public MethodeTypeConstant(final ClassFile classFile, final ByteBuffer buf) {
+    public MethodTypeConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
         descriptorIndex = buf.getShort();

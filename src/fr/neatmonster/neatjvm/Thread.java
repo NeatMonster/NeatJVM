@@ -2,6 +2,7 @@ package fr.neatmonster.neatjvm;
 
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
+import fr.neatmonster.neatjvm.format.constant.ClassConstant;
 
 public class Thread {
     public static enum ThreadState {
@@ -18,14 +19,16 @@ public class Thread {
     public CodeAttribute  code;
     public Stack          stack;
     public StackFrame     frame;
+    public InstanceData   instance;
 
     public Thread(final VirtualMachine vm, final int id) {
         this.vm = vm;
         this.id = id;
     }
 
-    public void start(final CodeAttribute code) {
+    public void start(final CodeAttribute code, final InstanceData instance) {
         this.code = code;
+        this.instance = instance;
 
         stack = new Stack();
         frame = stack.pushFrame(code.maxStack, code.maxLocals);
@@ -109,10 +112,23 @@ public class Thread {
                 _return();
                 break;
             // REFERENCES
+            case 0xbb: // new
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+                final ClassConstant classInfo = code.classFile.constants.getClass(index);
+                if (!classInfo.isResolved())
+                    classInfo.resolve();
+                final int objectref = classInfo.resolvedClass.newInstance();
+                frame.pushReference(objectref);
+                break;
+            }
             // EXTENDED
             // RESERVED
             default:
                 System.err.println("Unrecognized opcode 0x" + Integer.toHexString(opcode));
+                System.exit(0);
                 break;
         }
     }

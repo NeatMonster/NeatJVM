@@ -9,12 +9,24 @@ import fr.neatmonster.neatjvm.util.StringBuilder;
 public class NameAndTypeConstant extends ConstantInfo {
     public final short nameIndex;
     public final short descriptorIndex;
+    
+    public String name;
+    public String descriptor;
 
     public NameAndTypeConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
         nameIndex = buf.getShort();
         descriptorIndex = buf.getShort();
+    }
+    
+    public void resolve() {
+        name = classFile.constants.getUtf8(nameIndex);
+        descriptor = classFile.constants.getUtf8(descriptorIndex);
+    }
+    
+    public boolean isResolved() {
+        return name != null;
     }
 
     @Override

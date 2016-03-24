@@ -1,8 +1,10 @@
 package fr.neatmonster.neatjvm;
 
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
+import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 import fr.neatmonster.neatjvm.format.constant.ClassConstant;
+import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
 
 public class Thread {
     public static enum ThreadState {
@@ -111,6 +113,37 @@ public class Thread {
             case 0xb1: // return
                 _return();
                 break;
+            case 0xb7: // invokespecial
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+
+                final MethodrefConstant methodInfo = code.classFile.constants.getMethodref(index);
+                if (!methodInfo.isResolved())
+                    methodInfo.resolve();
+
+                final MethodInfo method = methodInfo.method;
+                if (!method.isResolved())
+                    method.resolve();
+                final int paramsSize = method.descriptor.getParametersSize();
+
+                final int objectref = frame.stack[frame.stackTop - paramsSize - 1];
+                final InstanceData instance = vm.handlePool.getInstance(objectref);
+                if (instance == null) {
+                    // TODO: Throw NullPointerException
+                    System.err.println("NullPointerException");
+                    System.exit(0);
+                }
+
+                final CodeAttribute newCode = method.code;
+                final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
+                for (int i = frame.stackTop - paramsSize - 1; i < frame.stackTop; ++i)
+                    newFrame.store(i, frame.pop());
+
+                contextSwitchUp(newFrame, newCode);
+                break;
+            }
             // REFERENCES
             case 0xbb: // new
             {
@@ -143,7 +176,13 @@ public class Thread {
             contextSwitchDown(prevFrame);
     }
 
-    public void contextSwitchUp() {
+    public void contextSwitchUp(final StackFrame newFrame, final CodeAttribute newCode) {
+        frame.pc = pc;
+        frame.code = code;
+
+        pc = 0;
+        code = newCode;
+        frame = newFrame;
     }
 
     public void contextSwitchDown(final StackFrame prevFrame) {

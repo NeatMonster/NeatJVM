@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.format.constant.ClassConstant;
+import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
+import fr.neatmonster.neatjvm.format.constant.NameAndTypeConstant;
 import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 import fr.neatmonster.neatjvm.util.StringBuilder;
 
@@ -29,12 +31,20 @@ public class ConstantPool {
         }
     }
 
+    public String getUtf8(final int index) {
+        return ((Utf8Constant) constants[index - 1]).value;
+    }
+
     public ClassConstant getClass(final int index) {
         return (ClassConstant) constants[index - 1];
     }
 
-    public String getUtf8(final int index) {
-        return ((Utf8Constant) constants[index - 1]).value;
+    public MethodrefConstant getMethodref(final int index) {
+        return (MethodrefConstant) constants[index - 1];
+    }
+
+    public NameAndTypeConstant getNameAndType(final int index) {
+        return (NameAndTypeConstant) constants[index - 1];
     }
 
     public void toString(final StringBuilder s) {

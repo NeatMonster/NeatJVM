@@ -44,6 +44,10 @@ public class StackFrame {
         stack[stackTop++] = value;
     }
 
+    public int pop() {
+        return stack[--stackTop];
+    }
+
     public int popInt() {
         return stack[--stackTop];
     }
@@ -68,6 +72,10 @@ public class StackFrame {
 
     public int popReturnType() {
         return stack[--stackTop];
+    }
+
+    public void store(final int index, final int value) {
+        locals[index] = value;
     }
 
     public void storeInt(final int index, final int value) {

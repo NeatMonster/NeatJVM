@@ -32,6 +32,13 @@ public class MethodDescriptor {
 
         returnType = FieldDescriptor.parseType(buf);
     }
+    
+    public int getParametersSize() {
+        int size = 0;
+        for (FieldType type : parametersType)
+            size += type.getSize() > 4 ? 2 : 1;
+        return size;
+    }
 
     @Override
     public String toString() {

@@ -46,13 +46,6 @@ public class MethodInfo {
             }
         }
     }
-
-    /*public CodeAttribute getCode() {
-        for (AttributeInfo attribute : attributes)
-            if (attribute instanceof CodeAttribute)
-                return (CodeAttribute) attribute;
-        return null;
-    }*/
     
     public void resolve() {
         name = classFile.constants.getUtf8(nameIndex);

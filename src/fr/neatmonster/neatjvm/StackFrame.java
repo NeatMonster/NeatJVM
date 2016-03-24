@@ -36,6 +36,14 @@ public class StackFrame {
         stack[stackTop++] = (int) (bits >> 16 & 0xffffffff);
     }
 
+    public void pushReference(final int value) {
+        stack[stackTop++] = value;
+    }
+
+    public void pushReturnType(final int value) {
+        stack[stackTop++] = value;
+    }
+
     public int popInt() {
         return stack[--stackTop];
     }
@@ -52,6 +60,14 @@ public class StackFrame {
     public double popDouble() {
         final int value = stack[--stackTop] << 16;
         return Double.longBitsToDouble(value | stack[--stackTop]);
+    }
+
+    public int popReference() {
+        return stack[--stackTop];
+    }
+
+    public int popReturnType() {
+        return stack[--stackTop];
     }
 
     public void storeInt(final int index, final int value) {
@@ -73,6 +89,14 @@ public class StackFrame {
         locals[index + 1] = (int) (bits >> 16 & 0xffffffff);
     }
 
+    public void storeReference(final int index, final int value) {
+        locals[index] = value;
+    }
+
+    public void storeReturnType(final int index, final int value) {
+        locals[index] = value;
+    }
+
     public int getInt(final int index) {
         return locals[index];
     }
@@ -89,5 +113,18 @@ public class StackFrame {
     public double getDouble(final int index) {
         final int value = locals[index + 1] << 16;
         return Double.longBitsToDouble(value | locals[index]);
+    }
+
+    public int getReference(final int index) {
+        return locals[index];
+    }
+
+    public int getReturnType(final int index) {
+        return locals[index];
+    }
+
+    public void dup() {
+        final int value = stack[stackTop - 1];
+        stack[stackTop++] = value;
     }
 }

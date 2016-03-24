@@ -37,6 +37,13 @@ public class Thread {
 
         final int opcode = code.code[pc++] & 0xff;
         switch (opcode) {
+            // CONSTANTS
+            case 0x0: // nop
+                break;
+            case 0x1: // aconst_null
+                frame.pushReference(0);
+                break;
+            case 0x2: // iconst_m1
             case 0x3: // iconst_0
             case 0x4: // iconst_1
             case 0x5: // iconst_2
@@ -48,6 +55,31 @@ public class Thread {
                 frame.pushInt(i);
                 break;
             }
+            case 0x10: // bipush
+            {
+                final byte b = code.code[pc++];
+                frame.pushInt(b);
+                break;
+            }
+            case 0x11: // sipush
+            {
+                final byte b1 = code.code[pc++];
+                final byte b2 = code.code[pc++];
+                frame.pushInt(b1 << 8 | b2);
+                break;
+            }
+            // LOADS
+            case 0x1a: // iload_0
+            case 0x1b: // iload_1
+            case 0x1c: // iload_2
+            case 0x1d: // iload_3
+            {
+                final int n = opcode - 0x1a;
+                final int value = frame.getInt(n);
+                frame.pushInt(value);
+                break;
+            }
+            // STORES
             case 0x3b: // istore_0
             case 0x3c: // istore_1
             case 0x3d: // istore_2
@@ -58,18 +90,34 @@ public class Thread {
                 frame.storeInt(n, value);
                 break;
             }
-            case 0xb1: // return
+            // STACK
+            case 0x59: // dup
+                frame.dup();
+                break;
+            // MATH
+            case 0x60: // iadd
             {
-                doReturn();
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                frame.pushInt(value1 + value2);
                 break;
             }
+            // CONVERSIONS
+            // COMPARISONS
+            // CONTROL
+            case 0xb1: // return
+                _return();
+                break;
+            // REFERENCES
+            // EXTENDED
+            // RESERVED
             default:
                 System.err.println("Unrecognized opcode 0x" + Integer.toHexString(opcode));
                 break;
         }
     }
 
-    private void doReturn() {
+    private void _return() {
         stack.popFrame();
 
         final StackFrame prevFrame = stack.getTopFrame();

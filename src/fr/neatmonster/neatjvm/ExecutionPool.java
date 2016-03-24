@@ -3,6 +3,8 @@ package fr.neatmonster.neatjvm;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.neatmonster.neatjvm.Thread.ThreadState;
+
 public class ExecutionPool {
     public static enum ThreadPriority {
         MIN_PRIORITY, NORM_PRIORITY, MAX_PRIORITY;
@@ -23,8 +25,11 @@ public class ExecutionPool {
     }
 
     public Thread getNextThread() {
-        // TODO: Implement multiple threads support via round-robin
-        return threads.keySet().iterator().next();
+        // TODO: Implement multi-threading
+        for (final Thread thread : threads.keySet())
+            if (thread.state == ThreadState.RUNNING)
+                return thread;
+        return null;
     }
 
     public int getNextThreadId() {

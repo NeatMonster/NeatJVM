@@ -17,7 +17,7 @@ public class Thread {
     public int            pc;
     public CodeAttribute  code;
     public Stack          stack;
-    public StackFrame     stackFrame;
+    public StackFrame     frame;
 
     public Thread(final VirtualMachine vm, final int id) {
         this.vm = vm;
@@ -28,15 +28,64 @@ public class Thread {
         this.code = code;
 
         stack = new Stack();
-        stackFrame = stack.addFrame(code.maxStack, code.maxLocals);
+        frame = stack.pushFrame(code.maxStack, code.maxLocals);
         state = ThreadState.RUNNING;
     }
 
     public void tick() {
         vm.currentThread = this;
 
-        final byte opcode = code.code[pc++];
-        // TODO: Execute the instruction.
-        System.out.println("opcode: 0x" + Integer.toHexString(opcode & 0xff));
+        final int opcode = code.code[pc++] & 0xff;
+        switch (opcode) {
+            case 0x3: // iconst_0
+            case 0x4: // iconst_1
+            case 0x5: // iconst_2
+            case 0x6: // iconst_3
+            case 0x7: // iconst_4
+            case 0x8: // iconst_5
+            {
+                final int i = opcode - 0x3;
+                frame.pushInt(i);
+                break;
+            }
+            case 0x3b: // istore_0
+            case 0x3c: // istore_1
+            case 0x3d: // istore_2
+            case 0x3e: // istore_3
+            {
+                final int n = opcode - 0x3b;
+                final int value = frame.popInt();
+                frame.storeInt(n, value);
+                break;
+            }
+            case 0xb1: // return
+            {
+                doReturn();
+                break;
+            }
+            default:
+                System.err.println("Unrecognized opcode 0x" + Integer.toHexString(opcode));
+                break;
+        }
+    }
+
+    private void doReturn() {
+        stack.popFrame();
+
+        final StackFrame prevFrame = stack.getTopFrame();
+        if (prevFrame == null)
+            state = ThreadState.DEAD;
+        else
+            contextSwitchDown(prevFrame);
+    }
+
+    public void contextSwitchUp() {
+    }
+
+    public void contextSwitchDown(final StackFrame prevFrame) {
+        frame = prevFrame;
+
+        pc = prevFrame.pc;
+        code = prevFrame.code;
     }
 }

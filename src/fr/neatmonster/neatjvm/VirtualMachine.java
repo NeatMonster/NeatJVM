@@ -43,6 +43,8 @@ public class VirtualMachine {
     public void run() {
         while (true) {
             final Thread nextThread = executionPool.getNextThread();
+            if (nextThread == null)
+                break;
             nextThread.tick();
         }
     }

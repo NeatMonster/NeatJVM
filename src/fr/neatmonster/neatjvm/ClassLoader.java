@@ -25,10 +25,6 @@ public class ClassLoader {
     }
 
     public ClassFile loadClass(final String className) {
-        // TODO: Implement native support
-        if (className.equals("java/lang/Object"))
-            return null;
-
         if (parent == null) {
             byte[] bytes;
             try {

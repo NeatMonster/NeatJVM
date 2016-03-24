@@ -8,7 +8,7 @@ import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
 
 public class Thread {
     public static enum ThreadState {
-        DEAD, RUNNING, WAITING
+        DEAD, RUNNING
     }
 
     public VirtualMachine vm;
@@ -312,22 +312,8 @@ public class Thread {
                 final MethodInfo method = methodInfo.method;
                 if (!method.isResolved())
                     method.resolve();
-                final int paramsSize = method.descriptor.getParametersSize();
 
-                final int objectref = frame.stack[frame.stackTop - paramsSize - 1];
-                final InstanceData instance = vm.handlePool.getInstance(objectref);
-                if (instance == null) {
-                    // TODO: Throw NullPointerException
-                    System.err.println("NullPointerException");
-                    System.exit(0);
-                }
-
-                final CodeAttribute newCode = method.code;
-                final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
-                for (int i = frame.stackTop - paramsSize - 1; i < frame.stackTop; ++i)
-                    newFrame.store(i, frame.pop());
-
-                contextSwitchUp(newFrame, newCode);
+                invokeSpecial(method);
                 break;
             }
             // REFERENCES
@@ -352,7 +338,26 @@ public class Thread {
         }
     }
 
-    private void _return() {
+    public void invokeSpecial(final MethodInfo method) {
+        final int paramsSize = method.descriptor.getParametersSize();
+
+        final int objectref = frame.stack[frame.stackTop - paramsSize - 1];
+        final InstanceData instance = vm.handlePool.getInstance(objectref);
+        if (instance == null) {
+            // TODO: Throw NullPointerException
+            System.err.println("NullPointerException");
+            System.exit(0);
+        }
+
+        final CodeAttribute newCode = method.code;
+        final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
+        for (int i = paramsSize; i >= 0; --i)
+            newFrame.store(i, frame.pop());
+
+        contextSwitchUp(newFrame, newCode);
+    }
+
+    public void _return() {
         stack.popFrame();
 
         final StackFrame prevFrame = stack.getTopFrame();

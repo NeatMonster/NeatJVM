@@ -45,7 +45,7 @@ public class InstanceData {
         for (final FieldInfo field : fields)
             totalSize += field.descriptor.getSize();
 
-        final HeapSpace heap = classFile.loader.vm.heapSpace;
+        final HeapManager heap = classFile.loader.vm.javaHeap;
         int addr = heap.allocate(totalSize);
         for (final FieldInfo field : fields) {
             heap.put(addr, field.descriptor.getDefault());

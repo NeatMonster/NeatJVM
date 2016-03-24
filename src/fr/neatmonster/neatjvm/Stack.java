@@ -4,7 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Stack {
-    public List<StackFrame> frames = new ArrayList<>();
+    public Thread                 thread;
+    public final List<StackFrame> frames = new ArrayList<>();
+
+    public Stack(final Thread thread) {
+        this.thread = thread;
+    }
 
     public StackFrame getTopFrame() {
         if (frames.isEmpty())
@@ -13,7 +18,7 @@ public class Stack {
     }
 
     public StackFrame pushFrame(final short maxStack, final short maxLocals) {
-        final StackFrame frame = new StackFrame(maxStack, maxLocals);
+        final StackFrame frame = new StackFrame(this, maxStack, maxLocals);
         frames.add(frame);
         return frame;
     }

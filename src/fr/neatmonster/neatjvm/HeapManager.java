@@ -2,19 +2,19 @@ package fr.neatmonster.neatjvm;
 
 import java.nio.ByteBuffer;
 
-public class HeapSpace {
-    public VirtualMachine vm;
-    public ByteBuffer     heap;
-    public int            heapTop;
+public class HeapManager {
+    public ByteBuffer heap;
+    public int        heapTop;
 
-    public HeapSpace(final VirtualMachine vm, final int size) {
-        this.vm = vm;
+    public HeapManager(final int size) {
         heap = ByteBuffer.allocate(size);
     }
 
     public int allocate(final int size) {
-        if (heapTop + size >= heap.capacity())
-            return 0;
+        if (heapTop + size >= heap.capacity()) {
+            System.err.println("OutOfMemoryError");
+            System.exit(0);
+        }
         heapTop += size;
         return heapTop - size;
     }
@@ -28,6 +28,10 @@ public class HeapSpace {
         heap.put(bs);
     }
 
+    public void putInt(final int addr, final int value) {
+        heap.putInt(addr, value);
+    }
+
     public byte get(final int addr) {
         return heap.get(addr);
     }
@@ -35,5 +39,9 @@ public class HeapSpace {
     public void get(final int addr, final byte[] bs) {
         heap.position(addr);
         heap.get(bs);
+    }
+
+    public int getInt(final int addr) {
+        return heap.getInt(addr);
     }
 }

@@ -9,11 +9,9 @@ import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
 public class VirtualMachine {
-    public static final int  MAX_HEAP_SIZE  = 1024 * 1024;
-    public static final int  MAX_STACK_SIZE = 10 * 1024;
+    public static final int  MAX_HEAP_SIZE = 1024 * 1024;
 
-    public HeapSpace         heapSpace;
-    public HeapSpace         stackSpace;
+    public HeapManager       javaHeap;
     public ClassLoader       classLoader;
     public List<ClassLoader> classLoaders;
     public Thread            mainThread;
@@ -22,8 +20,7 @@ public class VirtualMachine {
     public HandlePool        handlePool;
 
     public VirtualMachine() {
-        heapSpace = new HeapSpace(this, MAX_HEAP_SIZE);
-        stackSpace = new HeapSpace(this, MAX_STACK_SIZE);
+        javaHeap = new HeapManager(MAX_HEAP_SIZE);
 
         classLoaders = new ArrayList<>();
         classLoaders.add(classLoader = new ClassLoader(this, null));

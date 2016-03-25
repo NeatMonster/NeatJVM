@@ -95,43 +95,43 @@ public class Thread {
             }
             case 0x11: // sipush
             {
-                final byte b1 = code.code[pc++];
-                final byte b2 = code.code[pc++];
+                final int b1 = code.code[pc++] & 0xff;
+                final int b2 = code.code[pc++] & 0xff;
                 frame.pushInt(b1 << 8 | b2);
                 break;
             }
             // LOADS
             case 0x15: // iload
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final int value = frame.getInt(index);
                 frame.pushInt(value);
                 break;
             }
             case 0x16: // lload
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final long value = frame.getLong(index);
                 frame.pushLong(value);
                 break;
             }
             case 0x17: // fload
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final float value = frame.getFloat(index);
                 frame.pushFloat(value);
                 break;
             }
             case 0x18: // dload
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final double value = frame.getDouble(index);
                 frame.pushDouble(value);
                 break;
             }
             case 0x19: // aload
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final int value = frame.getReference(index);
                 frame.pushReference(value);
                 break;
@@ -196,28 +196,28 @@ public class Thread {
             }
             case 0x37: // lstore
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final long value = frame.popLong();
                 frame.storeLong(index, value);
                 break;
             }
             case 0x38: // fstore
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final float value = frame.popFloat();
                 frame.storeFloat(index, value);
                 break;
             }
             case 0x39: // dstore
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final double value = frame.popDouble();
                 frame.storeDouble(index, value);
                 break;
             }
             case 0x3a: // astore
             {
-                final byte index = code.code[pc++];
+                final int index = code.code[pc++] & 0xff;
                 final int value = frame.popReference();
                 frame.storeReference(index, value);
                 break;
@@ -242,7 +242,20 @@ public class Thread {
                 frame.storeLong(n, value);
                 break;
             }
+            case 0x4b: // astore_0
+            case 0x4c: // astore_1
+            case 0x4d: // astore_2
+            case 0x4e: // astore_3
+            {
+                final int n = opcode - 0x4b;
+                final int objectref = frame.popReference();
+                frame.storeReference(n, objectref);
+                break;
+            }
             // STACK
+            case 0x57: // pop
+                frame.popInt();
+                break;
             case 0x59: // dup
                 frame.dup();
                 break;
@@ -298,12 +311,58 @@ public class Thread {
                 frame.pushInt(-value1);
                 break;
             }
+            case 0x84: // iinc
+            {
+                final int index = code.code[pc++] & 0xff;
+                final byte const_ = code.code[pc++];
+                final int value = frame.getInt(index);
+                frame.storeInt(index, value + const_);
+                break;
+            }
             // CONVERSIONS
             // COMPARISONS
-            // CONTROL
-            case 0xb1: // return
-                return_();
+            case 0x99: // ifeq
+            case 0x9a: // ifne
+            case 0x9b: // iflt
+            case 0x9c: // ifge
+            case 0x9d: // ifgt
+            case 0x9e: // ifle
+            {
+                final byte branchbyte1 = code.code[pc++];
+                final byte branchbyte2 = code.code[pc++];
+                final int offset = branchbyte1 << 8 | branchbyte2;
+
+                final int value = frame.popInt();
+
+                boolean cond = false;
+                cond |= opcode == 0x99 && value == 0;
+                cond |= opcode == 0x9a && value != 0;
+                cond |= opcode == 0x9b && value < 0;
+                cond |= opcode == 0x9c && value >= 0;
+                cond |= opcode == 0x9d && value > 0;
+                cond |= opcode == 0x9e && value <= 0;
+
+                if (cond)
+                    pc += offset - 3;
                 break;
+            }
+            // CONTROL
+            case 0xac: // ireturn
+                returnInt();
+                break;
+            case 0xb1: // return
+                returnVoid();
+                break;
+            case 0xb4: // getfield
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+
+                final FieldInfo field = code.classFile.constants.getFieldref(index);
+                getField(field.resolve());
+                break;
+            }
             case 0xb5: // putfield
             {
                 final byte indexbyte1 = code.code[pc++];
@@ -312,6 +371,16 @@ public class Thread {
 
                 final FieldInfo field = code.classFile.constants.getFieldref(index);
                 putField(field.resolve());
+                break;
+            }
+            case 0xb6: // invokevirtual
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+
+                final MethodInfo method = code.classFile.constants.getMethodref(index);
+                invokeVirtual(method.resolve());
                 break;
             }
             case 0xb7: // invokespecial
@@ -367,6 +436,53 @@ public class Thread {
         contextSwitchUp(newFrame, newCode);
     }
 
+    public void invokeVirtual(MethodInfo method) {
+        final int paramsSize = method.descriptor.getIntSize();
+
+        final int objectref = stackHeap.getInt(frame.stack + (frame.stackTop - paramsSize - 1) * 4);
+        final InstanceData instance = vm.handlePool.getInstance(objectref);
+        if (instance == null) {
+            // TODO Throw NullPointerException
+            System.err.println("NullPointerException");
+            System.exit(0);
+        }
+
+        // TODO Throw IllegalAccessError, AbstractMethodError,
+        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
+
+        int offset = -1;
+        for (int i = 0; i < method.classFile.methods.length; ++i)
+            if (method.classFile.methods[i] == method) {
+                offset = i;
+                break;
+            }
+        method = instance.classFile.methods[offset];
+
+        final CodeAttribute newCode = method.code;
+        final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
+        for (int i = paramsSize; i >= 0; --i)
+            newFrame.storeInt(i, frame.popInt());
+
+        contextSwitchUp(newFrame, newCode);
+    }
+
+    public void getField(final FieldInfo field) {
+        final int objectref = frame.popReference();
+        final InstanceData instance = vm.handlePool.getInstance(objectref);
+        if (instance == null) {
+            // TODO Throw NullPointerException
+            System.err.println("NullPointerException");
+            System.exit(0);
+        }
+
+        final byte[] value = new byte[field.descriptor.getIntSize() * 4];
+        vm.javaHeap.get(instance.dataStart + instance.offsets.get(field), value, 0, field.descriptor.getSize());
+
+        final ByteBuffer buf = ByteBuffer.wrap(value);
+        for (int i = 0; i < field.descriptor.getIntSize(); ++i)
+            frame.pushInt(buf.getInt());
+    }
+
     public void putField(final FieldInfo field) {
         final ByteBuffer buf = ByteBuffer.allocate(field.descriptor.getIntSize() * 4);
         for (int i = 0; i < field.descriptor.getIntSize(); ++i)
@@ -384,7 +500,21 @@ public class Thread {
         vm.javaHeap.put(instance.dataStart + instance.offsets.get(field), value, 0, field.descriptor.getSize());
     }
 
-    public void return_() {
+    public void returnInt() {
+        final int returnValue = frame.popInt();
+
+        stack.popFrame();
+
+        final StackFrame prevFrame = stack.getTopFrame();
+        if (prevFrame == null)
+            state = ThreadState.DEAD;
+        else {
+            prevFrame.pushInt(returnValue);
+            contextSwitchDown(prevFrame);
+        }
+    }
+
+    public void returnVoid() {
         stack.popFrame();
 
         final StackFrame prevFrame = stack.getTopFrame();

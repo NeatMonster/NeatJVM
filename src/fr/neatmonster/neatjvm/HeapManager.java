@@ -38,6 +38,11 @@ public class HeapManager {
         heap.get(value);
     }
 
+    public void get(final int addr, final byte[] dst, final int offset, final int length) {
+        heap.position(addr);
+        heap.get(dst, offset, length);
+    }
+
     public int getInt(final int addr) {
         return heap.getInt(addr);
     }

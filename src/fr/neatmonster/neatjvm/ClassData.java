@@ -20,9 +20,7 @@ public class ClassData {
                 continue;
             fields.add(field);
 
-            if (!field.isResolved())
-                field.resolve();
-            totalSize += field.descriptor.getSize();
+            totalSize += field.resolve().descriptor.getSize();
         }
         if (fields.isEmpty())
             return;

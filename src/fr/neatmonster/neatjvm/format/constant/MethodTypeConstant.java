@@ -4,10 +4,11 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class MethodTypeConstant extends ConstantInfo {
     public final short descriptorIndex;
+    
+    public String resolved;
 
     public MethodTypeConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -16,7 +17,10 @@ public class MethodTypeConstant extends ConstantInfo {
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("descriptorIndex: " + descriptorIndex);
+    public String resolve() {
+        if (resolved != null)
+            return resolved;
+        
+        return resolved = classFile.constants.getUtf8(descriptorIndex);
     }
 }

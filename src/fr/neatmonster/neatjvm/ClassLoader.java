@@ -7,8 +7,6 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.neatmonster.neatjvm.format.constant.ClassConstant;
-
 public class ClassLoader {
     public VirtualMachine         vm;
     public ClassLoader            parent;
@@ -44,17 +42,11 @@ public class ClassLoader {
         namespace.put(className, classFile);
 
         if (!className.equals("java/lang/Object")) {
-            if (classFile.superClass != 0) {
-                final ClassConstant classInfo = classFile.constants.getClass(classFile.superClass);
-                if (!classInfo.isResolved())
-                    classInfo.resolve();
-            }
+            if (classFile.superClass != 0)
+                classFile.constants.getClass(classFile.superClass);
 
-            for (final short index : classFile.interfaces) {
-                final ClassConstant classInfo = classFile.constants.getClass(index);
-                if (!classInfo.isResolved())
-                    classInfo.resolve();
-            }
+            for (final short index : classFile.interfaces)
+                classFile.constants.getClass(index);
         }
 
         classFile.initialize();

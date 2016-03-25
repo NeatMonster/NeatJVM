@@ -3,9 +3,15 @@ package fr.neatmonster.neatjvm.format;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import fr.neatmonster.neatjvm.util.Utils;
-
 public class FieldDescriptor {
+    public static byte[] intToBytes(int value) {
+        return ByteBuffer.allocate(Integer.SIZE / Byte.SIZE).putInt(value).array();
+    }
+
+    public static byte[] longToBytes(long value) {
+        return ByteBuffer.allocate(Long.SIZE / Byte.SIZE).putLong(value).array();
+    }
+
     // @formatter:off
     public static interface FieldType {
         
@@ -19,17 +25,17 @@ public class FieldDescriptor {
         // @formatter:off
         BYTE(   'B', 1, new byte[] { 0 }),
         CHAR(   'C', 2, new byte[] { 0, 0}),
-        DOUBLE( 'D', 8, Utils.longToBytes(Double.doubleToRawLongBits(0.0))),
-        FLOAT(  'F', 4, Utils.intToBytes(Float.floatToRawIntBits(0f))),
-        INT(    'I', 4, Utils.intToBytes(0)),
-        LONG(   'J', 8, Utils.longToBytes(0)),
+        DOUBLE( 'D', 8, longToBytes(Double.doubleToRawLongBits(0.0))),
+        FLOAT(  'F', 4, intToBytes(Float.floatToRawIntBits(0f))),
+        INT(    'I', 4, intToBytes(0)),
+        LONG(   'J', 8, longToBytes(0)),
         SHORT(  'S', 2, new byte[] { 0, 0 }),
         BOOLEAN('Z', 1, new byte[] { 0 }),
         VOID(   'V', 0, null);
         // @formatter:on
 
-        public final char term;
-        public final int size;
+        public final char   term;
+        public final int    size;
         public final byte[] _default;
 
         private BaseType(final char term, int size, byte[] _default) {
@@ -37,12 +43,12 @@ public class FieldDescriptor {
             this.size = size;
             this._default = _default;
         }
-        
+
         @Override
         public byte[] getDefault() {
             return _default;
         }
-        
+
         @Override
         public int getSize() {
             return size;
@@ -60,12 +66,12 @@ public class FieldDescriptor {
         public ObjectType(final String className) {
             this.className = className;
         }
-        
+
         @Override
         public byte[] getDefault() {
-            return Utils.intToBytes(0);
+            return intToBytes(0);
         }
-        
+
         @Override
         public int getSize() {
             return 4;
@@ -83,12 +89,12 @@ public class FieldDescriptor {
         public ArrayType(final FieldType type) {
             this.type = type;
         }
-        
+
         @Override
         public byte[] getDefault() {
-            return Utils.intToBytes(0);
+            return intToBytes(0);
         }
-        
+
         @Override
         public int getSize() {
             return 4;
@@ -128,11 +134,11 @@ public class FieldDescriptor {
     public FieldDescriptor(final String str) throws UnsupportedEncodingException {
         fieldType = parseType(ByteBuffer.wrap(str.getBytes("UTF-16BE")));
     }
-    
+
     public byte[] getDefault() {
         return fieldType.getDefault();
     }
-    
+
     public int getSize() {
         return fieldType.getSize();
     }

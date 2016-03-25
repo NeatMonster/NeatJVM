@@ -4,10 +4,11 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class StringConstant extends ConstantInfo {
     public final short stringIndex;
+
+    public String      resolved;
 
     public StringConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -16,7 +17,10 @@ public class StringConstant extends ConstantInfo {
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("stringIndex: " + stringIndex);
+    public String resolve() {
+        if (resolved != null)
+            return resolved;
+
+        return resolved = classFile.constants.getUtf8(stringIndex);
     }
 }

@@ -4,19 +4,18 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class IntegerConstant extends ConstantInfo {
-    public final int value;
+    public final int resolved;
 
     public IntegerConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
-        value = buf.getInt();
+        resolved = buf.getInt();
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("value: " + value);
+    public Integer resolve() {
+        return resolved;
     }
 }

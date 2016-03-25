@@ -18,9 +18,8 @@ import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
 import fr.neatmonster.neatjvm.format.constant.NameAndTypeConstant;
 import fr.neatmonster.neatjvm.format.constant.StringConstant;
 import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
-public abstract class ConstantInfo {
+public abstract class ConstantInfo implements Resolvable {
     // @formatter:off
     @SuppressWarnings("serial")
     public static Map<Integer, Class<? extends ConstantInfo>> ALL = new HashMap<Integer, Class<? extends ConstantInfo>>() {{
@@ -46,12 +45,4 @@ public abstract class ConstantInfo {
     public ConstantInfo(final ClassFile classFile) {
         this.classFile = classFile;
     }
-
-    public void toString(final StringBuilder s) {
-        s.openObject(this);
-        toString2(s);
-        s.closeObject();
-    }
-
-    public abstract void toString2(StringBuilder s);
 }

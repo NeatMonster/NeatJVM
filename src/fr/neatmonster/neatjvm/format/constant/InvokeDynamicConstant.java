@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class InvokeDynamicConstant extends ConstantInfo {
     public final short bootstrapMethodAttrIndex;
@@ -18,8 +17,8 @@ public class InvokeDynamicConstant extends ConstantInfo {
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("bootstrapMethodAttrIndex: " + bootstrapMethodAttrIndex);
-        s.appendln("nameAndTypeIndex: " + nameAndTypeIndex);
+    public Object resolve() {
+        // TODO Resolve this constant type
+        return null;
     }
 }

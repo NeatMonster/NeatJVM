@@ -1,14 +1,10 @@
 package fr.neatmonster.neatjvm.format;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import fr.neatmonster.neatjvm.ClassFile;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
-public class FieldInfo {
+public class FieldInfo implements Resolvable {
     public final ClassFile       classFile;
     public final short           accessFlags;
     public final short           nameIndex;
@@ -45,7 +41,10 @@ public class FieldInfo {
         }
     }
 
-    public void resolve() {
+    public FieldInfo resolve() {
+        if (name != null)
+            return this;
+        
         name = classFile.constants.getUtf8(nameIndex);
         String descriptorStr = classFile.constants.getUtf8(descriptorIndex);
         try {
@@ -54,34 +53,6 @@ public class FieldInfo {
             e.printStackTrace(System.err);
             System.exit(0);
         }
-    }
-    
-    public boolean isResolved() {
-        return name != null;
-    }
-
-    public void toString(final StringBuilder s) {
-        s.openObject(this);
-
-        final List<String> flags = new ArrayList<>();
-        for (final AccessFlag flag : AccessFlag.values())
-            if (flag.field && (accessFlags & flag.value) > 0)
-                flags.add(flag.name());
-        s.appendln("accessFlags: " + Arrays.asList(flags.toArray()));
-
-        s.appendln("nameIndex: " + nameIndex);
-        s.appendln("descriptorIndex: " + descriptorIndex);
-
-        s.append("attributes: ");
-        s.openArray();
-        for (final AttributeInfo attribute : attributes) {
-            if (attribute == null)
-                s.appendln("null");
-            else
-                attribute.toString(s);
-        }
-        s.closeArray();
-
-        s.closeObject();
+        return this;
     }
 }

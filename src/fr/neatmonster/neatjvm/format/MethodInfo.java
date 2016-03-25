@@ -1,24 +1,20 @@
 package fr.neatmonster.neatjvm.format;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
-public class MethodInfo {
+public class MethodInfo implements Resolvable {
     public final ClassFile       classFile;
     public final short           accessFlags;
     public final short           nameIndex;
     public final short           descriptorIndex;
     public final AttributeInfo[] attributes;
-    
-    public String name;
-    public MethodDescriptor descriptor;
-    public CodeAttribute code;
+
+    public String                name;
+    public MethodDescriptor      descriptor;
+    public CodeAttribute         code;
 
     public MethodInfo(final ClassFile classFile, final ByteBuffer buf) {
         this.classFile = classFile;
@@ -46,8 +42,11 @@ public class MethodInfo {
             }
         }
     }
-    
-    public void resolve() {
+
+    public MethodInfo resolve() {
+        if (name != null)
+            return this;
+        
         name = classFile.constants.getUtf8(nameIndex);
         String descriptorStr = classFile.constants.getUtf8(descriptorIndex);
         try {
@@ -61,34 +60,6 @@ public class MethodInfo {
                 code = (CodeAttribute) attribute;
                 break;
             }
-    }
-    
-    public boolean isResolved() {
-        return name != null;
-    }
-
-    public void toString(final StringBuilder s) {
-        s.openObject(this);
-
-        final List<String> flags = new ArrayList<>();
-        for (final AccessFlag flag : AccessFlag.values())
-            if (flag.method && (accessFlags & flag.value) > 0)
-                flags.add(flag.name());
-        s.appendln("accessFlags: " + Arrays.asList(flags.toArray()));
-
-        s.appendln("nameIndex: " + nameIndex);
-        s.appendln("descriptorIndex: " + descriptorIndex);
-
-        s.append("attributes: ");
-        s.openArray();
-        for (final AttributeInfo attribute : attributes) {
-            if (attribute == null)
-                s.appendln("null");
-            else
-                attribute.toString(s);
-        }
-        s.closeArray();
-
-        s.closeObject();
+        return this;
     }
 }

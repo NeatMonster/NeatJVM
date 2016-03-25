@@ -7,7 +7,6 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 import fr.neatmonster.neatjvm.format.attribute.ConstantValueAttribute;
 import fr.neatmonster.neatjvm.format.attribute.ExceptionsAttribute;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public abstract class AttributeInfo {
     // @formatter:off
@@ -24,12 +23,4 @@ public abstract class AttributeInfo {
     public AttributeInfo(final ClassFile classFile) {
         this.classFile = classFile;
     }
-
-    public void toString(final StringBuilder s) {
-        s.openObject(this);
-        toString2(s);
-        s.closeObject();
-    }
-
-    public abstract void toString2(StringBuilder s);
 }

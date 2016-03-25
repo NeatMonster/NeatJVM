@@ -4,11 +4,13 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
+import fr.neatmonster.neatjvm.format.FieldInfo;
 
 public class FieldrefConstant extends ConstantInfo {
     public final short classIndex;
     public final short nameAndTypeIndex;
+
+    public FieldInfo   resolved;
 
     public FieldrefConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -18,8 +20,8 @@ public class FieldrefConstant extends ConstantInfo {
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("classIndex: " + classIndex);
-        s.appendln("nameAndTypeIndex: " + nameAndTypeIndex);
+    public Object resolve() {
+        // TODO Resolve this contant type
+        return null;
     }
 }

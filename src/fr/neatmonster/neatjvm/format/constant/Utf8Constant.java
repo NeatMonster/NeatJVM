@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class Utf8Constant extends ConstantInfo {
     public final String value;
@@ -19,7 +18,7 @@ public class Utf8Constant extends ConstantInfo {
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("value: \"" + value + "\"");
+    public String resolve() {
+        return value;
     }
 }

@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class MethodHandlerConstant extends ConstantInfo {
     public final byte  referenceKind;
@@ -18,8 +17,8 @@ public class MethodHandlerConstant extends ConstantInfo {
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("referenceKind: " + referenceKind);
-        s.appendln("referenceIndex: " + referenceIndex);
+    public Object resolve() {
+        // TODO Resolve this constant type
+        return null;
     }
 }

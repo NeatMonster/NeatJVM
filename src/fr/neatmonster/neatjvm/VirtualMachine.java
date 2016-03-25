@@ -33,12 +33,7 @@ public class VirtualMachine {
         final ClassFile classFile = classLoader.loadClass(className);
         final MethodInfo main = classFile.getMethod("main", "([Ljava/lang/String;)V", AccessFlag.PUBLIC,
                 AccessFlag.STATIC);
-        for (final MethodInfo method : classFile.methods)
-            if (!method.isResolved())
-                method.resolve();
-        if (!main.isResolved())
-            main.resolve();
-        mainThread = runThread(main.code, null, ThreadPriority.NORM_PRIORITY);
+        mainThread = runThread(main.resolve().code, null, ThreadPriority.NORM_PRIORITY);
         run();
     }
 

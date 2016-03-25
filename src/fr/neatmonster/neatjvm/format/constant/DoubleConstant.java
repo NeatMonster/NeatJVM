@@ -4,22 +4,18 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class DoubleConstant extends ConstantInfo {
-    public final double value;
+    public final double resolved;
 
     public DoubleConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
-        final ByteBuffer bufLoc = ByteBuffer.allocate(8);
-        bufLoc.putInt(buf.getInt());
-        bufLoc.putInt(buf.getInt());
-        value = bufLoc.getDouble(0);
+        resolved = buf.getDouble();
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("value: " + value);
+    public Double resolve() {
+        return resolved;
     }
 }

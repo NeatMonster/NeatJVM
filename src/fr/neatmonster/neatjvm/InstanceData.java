@@ -5,17 +5,14 @@ import java.util.List;
 
 import fr.neatmonster.neatjvm.format.AccessFlag;
 import fr.neatmonster.neatjvm.format.FieldInfo;
-import fr.neatmonster.neatjvm.format.constant.ClassConstant;
 
 public class InstanceData {
     public static List<FieldInfo> getFields(final ClassFile classFile, final boolean isSuper) {
         final List<FieldInfo> fields = new ArrayList<>();
 
         if (classFile.superClass != 0) {
-            final ClassConstant superInfo = classFile.constants.getClass(classFile.superClass);
-            // TODO: Implement native support
-            if (superInfo.resolvedClass != null)
-                fields.addAll(getFields(superInfo.resolvedClass, true));
+            final ClassFile superClass = classFile.constants.getClass(classFile.superClass);
+            fields.addAll(getFields(superClass, true));
         }
 
         for (final FieldInfo field : classFile.fields) {
@@ -23,10 +20,7 @@ public class InstanceData {
                 continue;
             if (isSuper && AccessFlag.PRIVATE.eval(field.accessFlags))
                 continue;
-            fields.add(field);
-
-            if (!field.isResolved())
-                field.resolve();
+            fields.add(field.resolve());
         }
 
         return fields;

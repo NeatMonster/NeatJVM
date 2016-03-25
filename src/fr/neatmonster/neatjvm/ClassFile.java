@@ -1,9 +1,6 @@
 package fr.neatmonster.neatjvm;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
 import fr.neatmonster.neatjvm.Thread.ThreadState;
@@ -11,7 +8,6 @@ import fr.neatmonster.neatjvm.format.AccessFlag;
 import fr.neatmonster.neatjvm.format.AttributeInfo;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class ClassFile {
     public final ClassLoader     loader;
@@ -83,15 +79,13 @@ public class ClassFile {
         final MethodInfo cinit = getMethod("<cinit>", "()V");
         if (cinit == null)
             return;
-        if (!cinit.isResolved())
-            cinit.resolve();
 
         final VirtualMachine vm = loader.vm;
         Thread thread;
         if (vm.currentThread == null)
-            thread = vm.runThread(cinit.code, null, ThreadPriority.NORM_PRIORITY);
+            thread = vm.runThread(cinit.resolve().code, null, ThreadPriority.NORM_PRIORITY);
         else
-            thread = vm.runThread(cinit.code, vm.currentThread.instance, vm.currentThread.priority);
+            thread = vm.runThread(cinit.resolve().code, vm.currentThread.instance, vm.currentThread.priority);
 
         while (thread.state != ThreadState.DEAD)
             thread.tick();
@@ -128,49 +122,5 @@ public class ClassFile {
     public int newInstance() {
         final InstanceData instance = new InstanceData(this);
         return loader.vm.handlePool.addInstance(instance);
-    }
-
-    public void toString(final StringBuilder s) {
-        s.openObject(this);
-
-        s.appendln("magic: 0x" + Integer.toHexString(magic));
-        s.appendln("version: " + majorVersion + "." + minorVersion);
-
-        constants.toString(s);
-
-        final List<String> flags = new ArrayList<>();
-        for (final AccessFlag flag : AccessFlag.values())
-            if (flag.clazz && flag.eval(accessFlags))
-                flags.add(flag.name());
-        s.appendln("accessFlags: " + Arrays.asList(flags.toArray()));
-
-        s.appendln("thisClass: " + thisClass);
-        s.appendln("superClass: " + superClass);
-
-        s.appendln("interfaces: " + Arrays.toString(interfaces));
-
-        s.append("fields: ");
-        s.openArray();
-        for (final FieldInfo field : fields)
-            field.toString(s);
-        s.closeArray();
-
-        s.append("methods: ");
-        s.openArray();
-        for (final MethodInfo method : methods)
-            method.toString(s);
-        s.closeArray();
-
-        s.append("attributes: ");
-        s.openArray();
-        for (final AttributeInfo attribute : attributes) {
-            if (attribute == null)
-                s.appendln("null");
-            else
-                attribute.toString(s);
-        }
-        s.closeArray();
-
-        s.closeObject();
     }
 }

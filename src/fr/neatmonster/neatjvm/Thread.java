@@ -3,8 +3,6 @@ package fr.neatmonster.neatjvm;
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
-import fr.neatmonster.neatjvm.format.constant.ClassConstant;
-import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
 
 public class Thread {
     public static final int MAX_STACK_SIZE = 10 * 1024;
@@ -309,15 +307,8 @@ public class Thread {
                 final byte indexbyte2 = code.code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
 
-                final MethodrefConstant methodInfo = code.classFile.constants.getMethodref(index);
-                if (!methodInfo.isResolved())
-                    methodInfo.resolve();
-
-                final MethodInfo method = methodInfo.method;
-                if (!method.isResolved())
-                    method.resolve();
-
-                invokeSpecial(method);
+                final MethodInfo method = code.classFile.constants.getMethodref(index);
+                invokeSpecial(method.resolve());
                 break;
             }
             // REFERENCES
@@ -326,10 +317,9 @@ public class Thread {
                 final byte indexbyte1 = code.code[pc++];
                 final byte indexbyte2 = code.code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
-                final ClassConstant classInfo = code.classFile.constants.getClass(index);
-                if (!classInfo.isResolved())
-                    classInfo.resolve();
-                final int objectref = classInfo.resolvedClass.newInstance();
+
+                final ClassFile classFile = code.classFile.constants.getClass(index);
+                final int objectref = classFile.newInstance();
                 frame.pushReference(objectref);
                 break;
             }

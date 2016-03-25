@@ -1,12 +1,9 @@
 package fr.neatmonster.neatjvm.format.attribute;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.AttributeInfo;
-import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class CodeAttribute extends AttributeInfo {
     public static class ExceptionHandler {
@@ -20,17 +17,6 @@ public class CodeAttribute extends AttributeInfo {
             endPC = buf.getShort();
             handlerPC = buf.getShort();
             catchType = buf.getShort();
-        }
-
-        public void toString(final StringBuilder s) {
-            s.openObject(this);
-
-            s.appendln("startPC: " + startPC);
-            s.appendln("endPC: " + endPC);
-            s.appendln("handlerPC: " + handlerPC);
-            s.appendln("catchType: " + catchType);
-
-            s.closeObject();
         }
     }
 
@@ -73,28 +59,5 @@ public class CodeAttribute extends AttributeInfo {
                 System.exit(0);
             }
         }
-    }
-
-    @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("maxStack: " + maxStack);
-        s.appendln("maxLocals: " + maxLocals);
-        s.appendln("code: " + Arrays.toString(code));
-
-        s.append("exceptions: ");
-        s.openArray();
-        for (final ExceptionHandler exception : exceptions)
-            exception.toString(s);
-        s.closeArray();
-
-        s.append("attributes: ");
-        s.openArray();
-        for (final AttributeInfo attribute : attributes) {
-            if (attribute == null)
-                s.appendln("null");
-            else
-                attribute.toString(s);
-        }
-        s.closeArray();
     }
 }

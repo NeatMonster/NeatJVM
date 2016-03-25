@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.util.StringBuilder;
 
 public class InterfaceMethodrefConstant extends ConstantInfo {
     public final short classIndex;
@@ -18,8 +17,8 @@ public class InterfaceMethodrefConstant extends ConstantInfo {
     }
 
     @Override
-    public void toString2(final StringBuilder s) {
-        s.appendln("classIndex: " + classIndex);
-        s.appendln("nameAndTypeIndex: " + nameAndTypeIndex);
+    public Object resolve() {
+        // TODO Resolve this constant type
+        return null;
     }
 }

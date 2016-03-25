@@ -91,7 +91,7 @@ public class ClassFile {
             thread.tick();
     }
 
-    public FieldInfo getField(final String name, final String desc, final AccessFlag[] flags) {
+    public FieldInfo getField(final String name, final String desc, final AccessFlag... flags) {
         search: for (final FieldInfo field : fields) {
             if (!constants.getUtf8(field.nameIndex).equals(name))
                 continue;

@@ -44,7 +44,7 @@ public class FieldInfo implements Resolvable {
     public FieldInfo resolve() {
         if (name != null)
             return this;
-        
+
         name = classFile.constants.getUtf8(nameIndex);
         String descriptorStr = classFile.constants.getUtf8(descriptorIndex);
         try {

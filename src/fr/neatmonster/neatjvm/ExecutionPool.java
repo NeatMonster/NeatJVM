@@ -25,7 +25,7 @@ public class ExecutionPool {
     }
 
     public Thread getNextThread() {
-        // TODO: Implement multi-threading
+        // TODO Implement multi-threading
         for (final Thread thread : threads.keySet())
             if (thread.state == ThreadState.RUNNING)
                 return thread;

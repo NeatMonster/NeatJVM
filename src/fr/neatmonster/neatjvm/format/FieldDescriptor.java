@@ -4,14 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 public class FieldDescriptor {
-    public static byte[] intToBytes(int value) {
-        return ByteBuffer.allocate(Integer.SIZE / Byte.SIZE).putInt(value).array();
-    }
-
-    public static byte[] longToBytes(long value) {
-        return ByteBuffer.allocate(Long.SIZE / Byte.SIZE).putLong(value).array();
-    }
-
     // @formatter:off
     public static interface FieldType {
         
@@ -23,30 +15,30 @@ public class FieldDescriptor {
 
     public static enum BaseType implements FieldType {
         // @formatter:off
-        BYTE(   'B', 1, new byte[] { 0 }),
-        CHAR(   'C', 2, new byte[] { 0, 0}),
-        DOUBLE( 'D', 8, longToBytes(Double.doubleToRawLongBits(0.0))),
-        FLOAT(  'F', 4, intToBytes(Float.floatToRawIntBits(0f))),
-        INT(    'I', 4, intToBytes(0)),
-        LONG(   'J', 8, longToBytes(0)),
-        SHORT(  'S', 2, new byte[] { 0, 0 }),
-        BOOLEAN('Z', 1, new byte[] { 0 }),
-        VOID(   'V', 0, null);
+        BYTE(   'B', 1),
+        CHAR(   'C', 2),
+        DOUBLE( 'D', 8),
+        FLOAT(  'F', 4),
+        INT(    'I', 4),
+        LONG(   'J', 8),
+        SHORT(  'S', 2),
+        BOOLEAN('Z', 1),
+        VOID(   'V', 0);
         // @formatter:on
 
         public final char   term;
         public final int    size;
-        public final byte[] _default;
+        public final byte[] defVal;
 
-        private BaseType(final char term, int size, byte[] _default) {
+        private BaseType(final char term, int size) {
             this.term = term;
             this.size = size;
-            this._default = _default;
+            defVal = new byte[size];
         }
 
         @Override
         public byte[] getDefault() {
-            return _default;
+            return defVal;
         }
 
         @Override
@@ -62,14 +54,16 @@ public class FieldDescriptor {
 
     public static class ObjectType implements FieldType {
         public final String className;
+        public final byte[] defVal;
 
         public ObjectType(final String className) {
             this.className = className;
+            defVal = new byte[4];
         }
 
         @Override
         public byte[] getDefault() {
-            return intToBytes(0);
+            return defVal;
         }
 
         @Override
@@ -85,14 +79,16 @@ public class FieldDescriptor {
 
     public static class ArrayType implements FieldType {
         public final FieldType type;
+        public final byte[]    defVal;
 
         public ArrayType(final FieldType type) {
             this.type = type;
+            defVal = new byte[4];
         }
 
         @Override
         public byte[] getDefault() {
-            return intToBytes(0);
+            return defVal;
         }
 
         @Override
@@ -141,6 +137,10 @@ public class FieldDescriptor {
 
     public int getSize() {
         return fieldType.getSize();
+    }
+    
+    public int getIntSize() {
+        return fieldType.getSize() > 4 ? 2 : 1;
     }
 
     @Override

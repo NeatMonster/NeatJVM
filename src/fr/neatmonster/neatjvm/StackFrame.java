@@ -15,8 +15,8 @@ public class StackFrame {
     public StackFrame(final Stack frameStack, final short maxStack, final short maxLocals) {
         stackHeap = frameStack.thread.stackHeap;
 
-        stack = stackHeap.allocate(maxStack);
-        locals = stackHeap.allocate(maxLocals);
+        stack = stackHeap.allocate(maxStack * 4);
+        locals = stackHeap.allocate(maxLocals * 4);
     }
 
     public void pushInt(final int value) {

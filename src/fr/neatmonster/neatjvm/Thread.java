@@ -1,6 +1,9 @@
 package fr.neatmonster.neatjvm;
 
+import java.nio.ByteBuffer;
+
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
+import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
@@ -269,7 +272,7 @@ public class Thread {
             {
                 final int value2 = frame.popInt();
                 if (value2 == 0) {
-                    // TODO: Throw ArithmeticException
+                    // TODO Throw ArithmeticException
                     System.err.println("ArithmeticException");
                     System.exit(0);
                 }
@@ -281,7 +284,7 @@ public class Thread {
             {
                 final int value2 = frame.popInt();
                 if (value2 == 0) {
-                    // TODO: Throw ArithmeticException
+                    // TODO Throw ArithmeticException
                     System.err.println("ArithmeticException");
                     System.exit(0);
                 }
@@ -299,8 +302,18 @@ public class Thread {
             // COMPARISONS
             // CONTROL
             case 0xb1: // return
-                _return();
+                return_();
                 break;
+            case 0xb5: // putfield
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+
+                final FieldInfo field = code.classFile.constants.getFieldref(index);
+                putField(field.resolve());
+                break;
+            }
             case 0xb7: // invokespecial
             {
                 final byte indexbyte1 = code.code[pc++];
@@ -333,15 +346,18 @@ public class Thread {
     }
 
     public void invokeSpecial(final MethodInfo method) {
-        final int paramsSize = method.descriptor.getParametersSize();
+        final int paramsSize = method.descriptor.getIntSize();
 
         final int objectref = stackHeap.getInt(frame.stack + (frame.stackTop - paramsSize - 1) * 4);
         final InstanceData instance = vm.handlePool.getInstance(objectref);
         if (instance == null) {
-            // TODO: Throw NullPointerException
+            // TODO Throw NullPointerException
             System.err.println("NullPointerException");
             System.exit(0);
         }
+
+        // TODO Throw IllegalAccessError, AbstractMethodError,
+        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
 
         final CodeAttribute newCode = method.code;
         final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
@@ -351,7 +367,24 @@ public class Thread {
         contextSwitchUp(newFrame, newCode);
     }
 
-    public void _return() {
+    public void putField(final FieldInfo field) {
+        final ByteBuffer buf = ByteBuffer.allocate(field.descriptor.getIntSize() * 4);
+        for (int i = 0; i < field.descriptor.getIntSize(); ++i)
+            buf.putInt(frame.popInt());
+        final byte[] value = buf.array();
+
+        final int objectref = frame.popReference();
+        final InstanceData instance = vm.handlePool.getInstance(objectref);
+        if (instance == null) {
+            // TODO Throw NullPointerException
+            System.err.println("NullPointerException");
+            System.exit(0);
+        }
+
+        vm.javaHeap.put(instance.dataStart + instance.offsets.get(field), value, 0, field.descriptor.getSize());
+    }
+
+    public void return_() {
         stack.popFrame();
 
         final StackFrame prevFrame = stack.getTopFrame();

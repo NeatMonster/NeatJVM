@@ -3,9 +3,11 @@ package fr.neatmonster.neatjvm;
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.format.ConstantInfo;
+import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.constant.ClassConstant;
 import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
+import fr.neatmonster.neatjvm.format.constant.FieldrefConstant;
 import fr.neatmonster.neatjvm.format.constant.FloatConstant;
 import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
 import fr.neatmonster.neatjvm.format.constant.LongConstant;
@@ -63,6 +65,10 @@ public class ConstantPool {
 
     public String getString(final int index) {
         return ((StringConstant) constants[index - 1]).resolve();
+    }
+
+    public FieldInfo getFieldref(final int index) {
+        return ((FieldrefConstant) constants[index - 1]).resolve();
     }
 
     public MethodInfo getMethodref(final int index) {

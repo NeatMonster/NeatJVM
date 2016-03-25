@@ -20,8 +20,12 @@ public class FieldrefConstant extends ConstantInfo {
     }
 
     @Override
-    public Object resolve() {
-        // TODO Resolve this contant type
-        return null;
+    public FieldInfo resolve() {
+        if (resolved != null)
+            return resolved;
+
+        ClassFile classFile = this.classFile.constants.getClass(classIndex);
+        String[] nameAndType = this.classFile.constants.getNameAndType(nameAndTypeIndex);
+        return resolved = classFile.getField(nameAndType[0], nameAndType[1]);
     }
 }

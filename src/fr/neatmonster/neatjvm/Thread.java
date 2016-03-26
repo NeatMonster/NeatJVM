@@ -2,7 +2,9 @@ package fr.neatmonster.neatjvm;
 
 import java.nio.ByteBuffer;
 
+import fr.neatmonster.neatjvm.ClassFile.PrimitiveArrayClassFile;
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
+import fr.neatmonster.neatjvm.InstanceData.PrimitiveArrayInstanceData;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
@@ -186,6 +188,29 @@ public class Thread {
                 frame.pushReference(value);
                 break;
             }
+            case 0x2e: // iaload
+            {
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    // TODO Throw NullPointerException
+                    System.err.println("NullPointerException");
+                    System.exit(0);
+                }
+
+                final PrimitiveArrayInstanceData instance = (PrimitiveArrayInstanceData) vm.handlePool
+                        .getInstance(arrayref);
+                if (index < 0 || index >= instance.arrayLength) {
+                    // TODO Throw ArrayIndexOutOfBoundsException
+                    System.err.println("ArrayIndexOutOfBoundsException");
+                    System.exit(0);
+                }
+
+                final int value = vm.javaHeap.getInt(instance.dataStart + index * 4);
+                frame.pushInt(value);
+                break;
+            }
             // STORES
             case 0x36: // istore
             {
@@ -250,6 +275,29 @@ public class Thread {
                 final int n = opcode - 0x4b;
                 final int objectref = frame.popReference();
                 frame.storeReference(n, objectref);
+                break;
+            }
+            case 0x4f: // iastore
+            {
+                final int value = frame.popInt();
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    // TODO Throw NullPointerException
+                    System.err.println("NullPointerException");
+                    System.exit(0);
+                }
+
+                final PrimitiveArrayInstanceData instance = (PrimitiveArrayInstanceData) vm.handlePool
+                        .getInstance(arrayref);
+                if (index < 0 || index >= instance.arrayLength) {
+                    // TODO Throw ArrayIndexOutOfBoundsException
+                    System.err.println("ArrayIndexOutOfBoundsException");
+                    System.exit(0);
+                }
+
+                vm.javaHeap.putInt(instance.dataStart + index * 4, value);
                 break;
             }
             // STACK
@@ -347,6 +395,47 @@ public class Thread {
                 break;
             }
             // CONTROL
+            case 0xab: // lookupswitch
+            {
+                final int instrAddr = pc - 1;
+                while (pc % 4 > 0)
+                    ++pc;
+
+                int default_ = 0;
+                default_ |= code.code[pc++] << 24;
+                default_ |= code.code[pc++] << 16;
+                default_ |= code.code[pc++] << 8;
+                default_ |= code.code[pc++];
+
+                int npairs = 0;
+                npairs |= code.code[pc++] << 24;
+                npairs |= code.code[pc++] << 16;
+                npairs |= code.code[pc++] << 8;
+                npairs |= code.code[pc++];
+
+                final int key = frame.popInt();
+                for (int i = 0; i < npairs; ++i) {
+                    int match = 0;
+                    match |= code.code[pc++] << 24;
+                    match |= code.code[pc++] << 16;
+                    match |= code.code[pc++] << 8;
+                    match |= code.code[pc++];
+
+                    int offset = 0;
+                    offset |= code.code[pc++] << 24;
+                    offset |= code.code[pc++] << 16;
+                    offset |= code.code[pc++] << 8;
+                    offset |= code.code[pc++];
+
+                    if (key == match) {
+                        pc = instrAddr + offset;
+                        return;
+                    }
+                }
+
+                pc = instrAddr + default_;
+                break;
+            }
             case 0xac: // ireturn
                 returnInt();
                 break;
@@ -403,6 +492,21 @@ public class Thread {
                 final ClassFile classFile = code.classFile.constants.getClass(index);
                 final int objectref = classFile.newInstance();
                 frame.pushReference(objectref);
+                break;
+            }
+            case 0xbc: // newarray
+            {
+                final int count = frame.popInt();
+                if (count < 0) {
+                    // TODO Throw NegativeArraySizeException
+                    System.err.println("NegativeArraySizeException");
+                    System.exit(0);
+                }
+                final byte atype = code.code[pc++];
+
+                final PrimitiveArrayClassFile arrayClass = vm.classLoader.definePrimitiveArrayClass(atype);
+                final int arrayref = arrayClass.newInstance(count);
+                frame.pushReference(arrayref);
                 break;
             }
             // EXTENDED

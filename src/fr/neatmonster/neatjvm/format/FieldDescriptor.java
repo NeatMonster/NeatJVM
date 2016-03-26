@@ -15,14 +15,14 @@ public class FieldDescriptor {
 
     public static enum BaseType implements FieldType {
         // @formatter:off
-        BYTE(   'B', 1),
+        BOOLEAN('Z', 1),
         CHAR(   'C', 2),
-        DOUBLE( 'D', 8),
         FLOAT(  'F', 4),
+        DOUBLE( 'D', 8),
+        BYTE(   'B', 1),
+        SHORT(  'S', 2),
         INT(    'I', 4),
         LONG(   'J', 8),
-        SHORT(  'S', 2),
-        BOOLEAN('Z', 1),
         VOID(   'V', 0);
         // @formatter:on
 

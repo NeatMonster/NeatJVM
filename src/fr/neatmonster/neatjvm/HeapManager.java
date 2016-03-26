@@ -19,6 +19,10 @@ public class HeapManager {
         return heapTop - size;
     }
 
+    public void put(final int addr, final byte value) {
+        heap.put(addr, value);
+    }
+
     public void put(final int addr, final byte[] value) {
         heap.position(addr);
         heap.put(value);
@@ -31,6 +35,10 @@ public class HeapManager {
 
     public void putInt(final int addr, final int value) {
         heap.putInt(addr, value);
+    }
+
+    public byte get(final int addr) {
+        return heap.get(addr);
     }
 
     public void get(final int addr, final byte[] value) {

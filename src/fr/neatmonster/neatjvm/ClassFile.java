@@ -3,30 +3,68 @@ package fr.neatmonster.neatjvm;
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
+import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
+import fr.neatmonster.neatjvm.InstanceData.PrimitiveArrayInstanceData;
 import fr.neatmonster.neatjvm.Thread.ThreadState;
 import fr.neatmonster.neatjvm.format.AccessFlag;
 import fr.neatmonster.neatjvm.format.AttributeInfo;
+import fr.neatmonster.neatjvm.format.FieldDescriptor;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 
 public class ClassFile {
-    public final ClassLoader     loader;
-    public final ClassData       data;
+    public static class ArrayClassFile extends ClassFile {
+        public final ClassFile arrayClass;
 
-    public final int             magic;
-    public final short           minorVersion;
-    public final short           majorVersion;
-    public final ConstantPool    constants;
-    public final short           accessFlags;
-    public final short           thisClass;
-    public final short           superClass;
-    public final short[]         interfaces;
-    public final FieldInfo[]     fields;
-    public final MethodInfo[]    methods;
-    public final AttributeInfo[] attributes;
+        public ArrayClassFile(final ClassLoader loader, final ClassFile arrayClass, final String name) {
+            super(loader, null, name);
+            this.arrayClass = arrayClass;
+        }
 
-    public ClassFile(final ClassLoader loader, final ByteBuffer buf) {
+        public int newInstance(final int length) {
+            final InstanceData instance = new ArrayInstanceData(this, length);
+            return loader.vm.handlePool.addInstance(instance);
+        }
+    }
+
+    public static class PrimitiveArrayClassFile extends ArrayClassFile {
+        public final FieldDescriptor.BaseType arrayType;
+
+        public PrimitiveArrayClassFile(final ClassLoader loader, final FieldDescriptor.BaseType arrayType,
+                final String name) {
+            super(loader, null, name);
+            this.arrayType = arrayType;
+        }
+
+        @Override
+        public int newInstance(final int length) {
+            final InstanceData instance = new PrimitiveArrayInstanceData(this, length);
+            return loader.vm.handlePool.addInstance(instance);
+        }
+    }
+
+    public final ClassLoader loader;
+    public final String      name;
+    public ClassData         data;
+
+    public int               magic;
+    public short             minorVersion;
+    public short             majorVersion;
+    public ConstantPool      constants;
+    public short             accessFlags;
+    public short             thisClass;
+    public short             superClass;
+    public short[]           interfaces;
+    public FieldInfo[]       fields;
+    public MethodInfo[]      methods;
+    public AttributeInfo[]   attributes;
+
+    public ClassFile(final ClassLoader loader, final ByteBuffer buf, final String name) {
         this.loader = loader;
+        this.name = name;
+
+        if (buf == null)
+            return;
 
         magic = buf.getInt();
         minorVersion = buf.getShort();
@@ -59,13 +97,13 @@ public class ClassFile {
             final short index = buf.getShort();
             final int length = buf.getInt();
             try {
-                final String name = constants.getUtf8(index);
-                final Class<? extends AttributeInfo> clazz = AttributeInfo.ALL.get(name);
-                if (clazz == null) {
-                    System.err.println("Unrecognized attribute info w/ name " + name);
+                final String attrName = constants.getUtf8(index);
+                final Class<? extends AttributeInfo> attrClass = AttributeInfo.ALL.get(attrName);
+                if (attrClass == null) {
+                    System.err.println("Unrecognized attribute info w/ name " + attrName);
                     buf.position(buf.position() + length);
                 } else
-                    attributes[i] = clazz.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(this, buf);
+                    attributes[i] = attrClass.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(this, buf);
             } catch (final Exception e) {
                 e.printStackTrace(System.err);
                 System.exit(0);

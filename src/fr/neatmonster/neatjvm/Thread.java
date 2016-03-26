@@ -315,18 +315,18 @@ public class Thread {
                 frame.pushInt(value1 + value2);
                 break;
             }
-            case 0x68: // imul
-            {
-                final int value2 = frame.popInt();
-                final int value1 = frame.popInt();
-                frame.pushInt(value1 * value2);
-                break;
-            }
             case 0x64: // isub
             {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
                 frame.pushInt(value1 - value2);
+                break;
+            }
+            case 0x68: // imul
+            {
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                frame.pushInt(value1 * value2);
                 break;
             }
             case 0x6c: // idiv
@@ -442,6 +442,27 @@ public class Thread {
             case 0xb1: // return
                 returnVoid();
                 break;
+            // REFERENCES
+            case 0xb2: // getstatic
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+
+                final FieldInfo field = code.classFile.constants.getFieldref(index);
+                getStatic(field.resolve());
+                break;
+            }
+            case 0xb3: // putstatic
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+
+                final FieldInfo field = code.classFile.constants.getFieldref(index);
+                putStatic(field.resolve());
+                break;
+            }
             case 0xb4: // getfield
             {
                 final byte indexbyte1 = code.code[pc++];
@@ -482,7 +503,16 @@ public class Thread {
                 invokeSpecial(method.resolve());
                 break;
             }
-            // REFERENCES
+            case 0xb8: // invokestatic
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+
+                final MethodInfo method = code.classFile.constants.getMethodref(index);
+                invokeStatic(method.resolve());
+                break;
+            }
             case 0xbb: // new
             {
                 final byte indexbyte1 = code.code[pc++];
@@ -568,6 +598,37 @@ public class Thread {
             newFrame.storeInt(i, frame.popInt());
 
         contextSwitchUp(newFrame, newCode);
+    }
+
+    public void invokeStatic(final MethodInfo method) {
+        final int paramsSize = method.descriptor.getIntSize();
+
+        final CodeAttribute newCode = method.code;
+        final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
+        for (int i = paramsSize - 1; i >= 0; --i)
+            newFrame.storeInt(i, frame.popInt());
+
+        contextSwitchUp(newFrame, newCode);
+    }
+
+    public void getStatic(final FieldInfo field) {
+        final ClassData common = field.classFile.data;
+        final byte[] value = new byte[field.descriptor.getIntSize() * 4];
+        vm.javaHeap.get(common.dataStart + common.offsets.get(field), value, 0, field.descriptor.getSize());
+
+        final ByteBuffer buf = ByteBuffer.wrap(value);
+        for (int i = 0; i < field.descriptor.getIntSize(); ++i)
+            frame.pushInt(buf.getInt());
+    }
+
+    public void putStatic(final FieldInfo field) {
+        final ByteBuffer buf = ByteBuffer.allocate(field.descriptor.getIntSize() * 4);
+        for (int i = 0; i < field.descriptor.getIntSize(); ++i)
+            buf.putInt(frame.popInt());
+        final byte[] value = buf.array();
+
+        final ClassData common = field.classFile.data;
+        vm.javaHeap.put(common.dataStart + common.offsets.get(field), value, 0, field.descriptor.getSize());
     }
 
     public void getField(final FieldInfo field) {

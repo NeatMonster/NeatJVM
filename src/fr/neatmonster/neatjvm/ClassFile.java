@@ -25,6 +25,11 @@ public class ClassFile {
             final InstanceData instance = new ArrayInstanceData(this, length);
             return loader.vm.handlePool.addInstance(instance);
         }
+
+        @Override
+        public boolean isArray() {
+            return true;
+        }
     }
 
     public static class PrimitiveArrayClassFile extends ArrayClassFile {
@@ -40,6 +45,11 @@ public class ClassFile {
         public int newInstance(final int length) {
             final InstanceData instance = new PrimitiveArrayInstanceData(this, length);
             return loader.vm.handlePool.addInstance(instance);
+        }
+
+        @Override
+        public boolean isPrimitiveArray() {
+            return true;
         }
     }
 
@@ -131,6 +141,7 @@ public class ClassFile {
 
     public FieldInfo getField(final String name, final String desc, final AccessFlag... flags) {
         search: for (final FieldInfo field : fields) {
+            field.resolve();
             if (!constants.getUtf8(field.nameIndex).equals(name))
                 continue;
             if (!constants.getUtf8(field.descriptorIndex).equals(desc))
@@ -145,6 +156,7 @@ public class ClassFile {
 
     public MethodInfo getMethod(final String name, final String desc, final AccessFlag... flags) {
         search: for (final MethodInfo method : methods) {
+            method.resolve();
             if (!constants.getUtf8(method.nameIndex).equals(name))
                 continue;
             if (!constants.getUtf8(method.descriptorIndex).equals(desc))
@@ -160,5 +172,68 @@ public class ClassFile {
     public int newInstance() {
         final InstanceData instance = new InstanceData(this);
         return loader.vm.handlePool.addInstance(instance);
+    }
+
+    public boolean isArray() {
+        return false;
+    }
+
+    public boolean isPrimitiveArray() {
+        return false;
+    }
+
+    public boolean isInterface() {
+        return AccessFlag.INTERFACE.eval(accessFlags);
+    }
+
+    public boolean extends_(final ClassFile otherClass) {
+        if (equals(otherClass))
+            return true;
+
+        if (superClass == 0)
+            return false;
+        return constants.getClass(superClass).extends_(otherClass);
+    }
+
+    public boolean implements_(final ClassFile otherClass) {
+        if (equals(otherClass))
+            return true;
+
+        for (final int interface_ : interfaces)
+            if (constants.getClass(interface_).implements_(otherClass))
+                return true;
+        return false;
+    }
+
+    public boolean isInstance(final ClassFile otherClass) {
+        if (equals(otherClass))
+            return true;
+
+        if (isArray()) {
+            if (otherClass.isArray()) {
+                if (!isPrimitiveArray() && !otherClass.isPrimitiveArray())
+                    return ((ArrayClassFile) this).arrayClass.isInstance(((ArrayClassFile) otherClass).arrayClass);
+                else
+                    return isPrimitiveArray() && otherClass.isPrimitiveArray();
+            } else {
+                if (otherClass.isInterface())
+                    return otherClass.name.equals("java/lang/Cloneable")
+                            || otherClass.name.equals("java/io/Serializable");
+                else
+                    return otherClass.name.equals("java/lang/Object");
+            }
+        } else {
+            if (isInterface()) {
+                if (otherClass.isInterface())
+                    return extends_(otherClass);
+                else
+                    return otherClass.name.equals("java/lang/Object");
+            } else {
+                if (otherClass.isInterface())
+                    return implements_(otherClass);
+                else
+                    return extends_(otherClass);
+            }
+        }
     }
 }

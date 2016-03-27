@@ -10,6 +10,7 @@ import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
 import fr.neatmonster.neatjvm.format.constant.FieldrefConstant;
 import fr.neatmonster.neatjvm.format.constant.FloatConstant;
 import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
+import fr.neatmonster.neatjvm.format.constant.InterfaceMethodrefConstant;
 import fr.neatmonster.neatjvm.format.constant.LongConstant;
 import fr.neatmonster.neatjvm.format.constant.MethodTypeConstant;
 import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
@@ -73,6 +74,10 @@ public class ConstantPool {
 
     public MethodInfo getMethodref(final int index) {
         return ((MethodrefConstant) constants[index - 1]).resolve();
+    }
+
+    public MethodInfo getInterfaceMethodref(final int index, final InstanceData instance) {
+        return ((InterfaceMethodrefConstant) constants[index - 1]).resolveOn(instance);
     }
 
     public String[] getNameAndType(final int index) {

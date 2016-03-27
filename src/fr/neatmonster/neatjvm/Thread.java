@@ -513,6 +513,16 @@ public class Thread {
                 invokeStatic(method.resolve());
                 break;
             }
+            case 0xb9: // invokeinterface
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+                final int count = code.code[(pc += 2) - 1] & 0xff;
+
+                invokeInterface(index, count);
+                break;
+            }
             case 0xbb: // new
             {
                 final byte indexbyte1 = code.code[pc++];
@@ -537,6 +547,42 @@ public class Thread {
                 final PrimitiveArrayClassFile arrayClass = vm.classLoader.definePrimitiveArrayClass(atype);
                 final int arrayref = arrayClass.newInstance(count);
                 frame.pushReference(arrayref);
+                break;
+            }
+            case 0xc0: // checkcast
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+                final ClassFile resolvedClass = code.classFile.constants.getClass(index);
+
+                final int objectref = frame.popReference();
+                frame.pushReference(objectref);
+                if (objectref == 0)
+                    break;
+                final ClassFile instanceClass = vm.handlePool.getInstance(objectref).classFile;
+
+                if (!instanceClass.isInstance(resolvedClass)) {
+                    // TODO Throw ClassCastException
+                    System.err.println("ClassCastException");
+                    System.exit(0);
+                }
+
+                break;
+            }
+            case 0xc1: // instanceof
+            {
+                final byte indexbyte1 = code.code[pc++];
+                final byte indexbyte2 = code.code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+                final ClassFile resolvedClass = code.classFile.constants.getClass(index);
+
+                final int objectref = frame.popReference();
+                if (objectref == 0)
+                    frame.pushInt(0);
+                final ClassFile instanceClass = vm.handlePool.getInstance(objectref).classFile;
+
+                frame.pushInt(instanceClass.isInstance(resolvedClass) ? 1 : 0);
                 break;
             }
             // EXTENDED
@@ -581,9 +627,6 @@ public class Thread {
             System.exit(0);
         }
 
-        // TODO Throw IllegalAccessError, AbstractMethodError,
-        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
-
         int offset = -1;
         for (int i = 0; i < method.classFile.methods.length; ++i)
             if (method.classFile.methods[i] == method) {
@@ -591,6 +634,9 @@ public class Thread {
                 break;
             }
         method = instance.classFile.methods[offset];
+
+        // TODO Throw IllegalAccessError, AbstractMethodError,
+        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
 
         final CodeAttribute newCode = method.code;
         final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
@@ -606,6 +652,28 @@ public class Thread {
         final CodeAttribute newCode = method.code;
         final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
         for (int i = paramsSize - 1; i >= 0; --i)
+            newFrame.storeInt(i, frame.popInt());
+
+        contextSwitchUp(newFrame, newCode);
+    }
+
+    public void invokeInterface(final int index, final int paramsSize) {
+        final int objectref = stackHeap.getInt(frame.stack + (frame.stackTop - paramsSize - 1) * 4);
+        final InstanceData instance = vm.handlePool.getInstance(objectref);
+        if (instance == null) {
+            // TODO Throw NullPointerException
+            System.err.println("NullPointerException");
+            System.exit(0);
+        }
+
+        // TODO Throw IllegalAccessError, AbstractMethodError,
+        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
+
+        final MethodInfo method = code.classFile.constants.getInterfaceMethodref(index, instance);
+
+        final CodeAttribute newCode = method.code;
+        final StackFrame newFrame = stack.pushFrame(newCode.maxStack, newCode.maxLocals);
+        for (int i = paramsSize; i >= 0; --i)
             newFrame.storeInt(i, frame.popInt());
 
         contextSwitchUp(newFrame, newCode);

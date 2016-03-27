@@ -3,7 +3,9 @@ package fr.neatmonster.neatjvm.format.constant;
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.InstanceData;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
+import fr.neatmonster.neatjvm.format.MethodInfo;
 
 public class InterfaceMethodrefConstant extends ConstantInfo {
     public final short classIndex;
@@ -18,7 +20,11 @@ public class InterfaceMethodrefConstant extends ConstantInfo {
 
     @Override
     public Object resolve() {
-        // TODO Resolve this constant type
         return null;
+    }
+    
+    public MethodInfo resolveOn(InstanceData instance) {
+        String[] nameAndType = classFile.constants.getNameAndType(nameAndTypeIndex);
+        return instance.classFile.getMethod(nameAndType[0], nameAndType[1]);
     }
 }

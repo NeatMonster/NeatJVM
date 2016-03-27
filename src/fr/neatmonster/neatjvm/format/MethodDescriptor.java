@@ -8,12 +8,14 @@ import java.util.List;
 import fr.neatmonster.neatjvm.format.FieldDescriptor.FieldType;
 
 public class MethodDescriptor {
+    public static interface ReturnType {}
+
     public final FieldType[] parametersType;
-    public final FieldType   returnType;
+    public final ReturnType  returnType;
 
     public MethodDescriptor(final String str) throws UnsupportedEncodingException {
         ByteBuffer buf = ByteBuffer.wrap(str.getBytes("UTF-16BE"));
-        
+
         buf.getChar();
 
         final List<FieldType> types = new ArrayList<>();
@@ -30,16 +32,21 @@ public class MethodDescriptor {
 
         buf.getChar();
 
-        returnType = FieldDescriptor.parseType(buf);
+        if (buf.getChar() == 'V')
+            returnType = null;
+        else {        
+            buf.position(buf.position() - 2);
+            returnType = FieldDescriptor.parseType(buf);
+        }
     }
-    
+
     public int getSize() {
         int size = 0;
         for (FieldType type : parametersType)
             size += type.getSize();
         return size;
     }
-    
+
     public int getIntSize() {
         int size = 0;
         for (FieldType type : parametersType)

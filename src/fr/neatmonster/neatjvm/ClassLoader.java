@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
-import fr.neatmonster.neatjvm.ClassFile.PrimitiveArrayClassFile;
-import fr.neatmonster.neatjvm.format.FieldDescriptor;
+import fr.neatmonster.neatjvm.ClassFile.PrimitiveClassFile;
+import fr.neatmonster.neatjvm.format.FieldDescriptor.BaseType;
 
 public class ClassLoader {
     public VirtualMachine         vm;
@@ -20,6 +20,13 @@ public class ClassLoader {
         this.vm = vm;
         this.parent = parent;
         namespace = new HashMap<>();
+
+        if (parent == null) {
+            for (final BaseType type : BaseType.values()) {
+                final ClassFile primitiveClass = new PrimitiveClassFile(this, type);
+                namespace.put(primitiveClass.name, primitiveClass);
+            }
+        }
     }
 
     public ClassFile getClass(final String className) {
@@ -64,20 +71,7 @@ public class ClassLoader {
         if (classFile != null)
             return classFile;
 
-        classFile = new ArrayClassFile(this, arrayClass, className);
-        namespace.put(className, classFile);
-        return classFile;
-    }
-
-    public PrimitiveArrayClassFile definePrimitiveArrayClass(final byte atype) {
-        final FieldDescriptor.BaseType arrayType = FieldDescriptor.BaseType.values()[atype - 4];
-        final String className = "[" + arrayType.term;
-
-        PrimitiveArrayClassFile classFile = (PrimitiveArrayClassFile) getClass(className);
-        if (classFile != null)
-            return classFile;
-
-        classFile = new PrimitiveArrayClassFile(this, arrayType, className);
+        classFile = new ArrayClassFile(this, arrayClass);
         namespace.put(className, classFile);
         return classFile;
     }

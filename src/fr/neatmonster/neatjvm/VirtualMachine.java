@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
-import fr.neatmonster.neatjvm.format.AccessFlag;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
@@ -31,8 +30,7 @@ public class VirtualMachine {
 
     public void start(final String className) {
         final ClassFile classFile = classLoader.loadClass(className);
-        final MethodInfo main = classFile.getMethod("main", "([Ljava/lang/String;)V", AccessFlag.PUBLIC,
-                AccessFlag.STATIC);
+        final MethodInfo main = classFile.getMethod("main", "([Ljava/lang/String;)V");
         mainThread = runThread(main.resolve().code, null, ThreadPriority.NORM_PRIORITY);
         run();
     }

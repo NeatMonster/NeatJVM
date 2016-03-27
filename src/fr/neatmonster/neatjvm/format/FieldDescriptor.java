@@ -3,9 +3,11 @@ package fr.neatmonster.neatjvm.format;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
+import fr.neatmonster.neatjvm.format.MethodDescriptor.ReturnType;
+
 public class FieldDescriptor {
     // @formatter:off
-    public static interface FieldType {
+    public static interface FieldType extends ReturnType {
         
         public byte[] getDefault();
         
@@ -22,8 +24,7 @@ public class FieldDescriptor {
         BYTE(   'B', 1),
         SHORT(  'S', 2),
         INT(    'I', 4),
-        LONG(   'J', 8),
-        VOID(   'V', 0);
+        LONG(   'J', 8);
         // @formatter:on
 
         public final char   term;
@@ -48,7 +49,7 @@ public class FieldDescriptor {
 
         @Override
         public String toString() {
-            return "" + term;
+            return Character.toString(term);
         }
     }
 

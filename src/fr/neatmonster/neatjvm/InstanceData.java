@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
-import fr.neatmonster.neatjvm.ClassFile.PrimitiveArrayClassFile;
+import fr.neatmonster.neatjvm.ClassFile.PrimitiveClassFile;
 import fr.neatmonster.neatjvm.format.AccessFlag;
-import fr.neatmonster.neatjvm.format.FieldDescriptor;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 
 public class InstanceData extends ObjectData {
@@ -21,26 +20,13 @@ public class InstanceData extends ObjectData {
             arrayClass = classFile.arrayClass;
             arrayLength = length;
 
-            if (arrayClass == null)
-                return;
+            int elementSize = 4;
+            if (arrayClass instanceof PrimitiveClassFile)
+                elementSize = ((PrimitiveClassFile) arrayClass).type.size;
 
             final HeapManager heap = classFile.loader.vm.javaHeap;
-            dataStart = heap.allocate(length * 4);
-            for (int i = 0; i < length * 4; ++i)
-                heap.put(dataStart + i, (byte) 0);
-        }
-    }
-
-    public static class PrimitiveArrayInstanceData extends ArrayInstanceData {
-        public FieldDescriptor.BaseType arrayType;
-
-        public PrimitiveArrayInstanceData(final PrimitiveArrayClassFile classFile, final int length) {
-            super(classFile, length);
-            arrayType = classFile.arrayType;
-
-            final HeapManager heap = classFile.loader.vm.javaHeap;
-            dataStart = heap.allocate(length * arrayType.getSize());
-            for (int i = 0; i < length * arrayType.getSize(); ++i)
+            dataStart = heap.allocate(length * elementSize);
+            for (int i = 0; i < length * elementSize; ++i)
                 heap.put(dataStart + i, (byte) 0);
         }
     }

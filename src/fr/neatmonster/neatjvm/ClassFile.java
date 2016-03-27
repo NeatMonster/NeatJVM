@@ -4,20 +4,33 @@ import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
 import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
-import fr.neatmonster.neatjvm.InstanceData.PrimitiveArrayInstanceData;
 import fr.neatmonster.neatjvm.Thread.ThreadState;
 import fr.neatmonster.neatjvm.format.AccessFlag;
 import fr.neatmonster.neatjvm.format.AttributeInfo;
-import fr.neatmonster.neatjvm.format.FieldDescriptor;
+import fr.neatmonster.neatjvm.format.FieldDescriptor.BaseType;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 
 public class ClassFile {
+    public static class PrimitiveClassFile extends ClassFile {
+        public BaseType type;
+
+        public PrimitiveClassFile(final ClassLoader loader, final BaseType type) {
+            super(loader, null, type.toString());
+            this.type = type;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return true;
+        }
+    }
+
     public static class ArrayClassFile extends ClassFile {
         public final ClassFile arrayClass;
 
-        public ArrayClassFile(final ClassLoader loader, final ClassFile arrayClass, final String name) {
-            super(loader, null, name);
+        public ArrayClassFile(final ClassLoader loader, final ClassFile arrayClass) {
+            super(loader, null, "[" + arrayClass.name);
             this.arrayClass = arrayClass;
         }
 
@@ -28,27 +41,6 @@ public class ClassFile {
 
         @Override
         public boolean isArray() {
-            return true;
-        }
-    }
-
-    public static class PrimitiveArrayClassFile extends ArrayClassFile {
-        public final FieldDescriptor.BaseType arrayType;
-
-        public PrimitiveArrayClassFile(final ClassLoader loader, final FieldDescriptor.BaseType arrayType,
-                final String name) {
-            super(loader, null, name);
-            this.arrayType = arrayType;
-        }
-
-        @Override
-        public int newInstance(final int length) {
-            final InstanceData instance = new PrimitiveArrayInstanceData(this, length);
-            return loader.vm.handlePool.addInstance(instance);
-        }
-
-        @Override
-        public boolean isPrimitiveArray() {
             return true;
         }
     }
@@ -139,31 +131,25 @@ public class ClassFile {
             thread.tick();
     }
 
-    public FieldInfo getField(final String name, final String desc, final AccessFlag... flags) {
-        search: for (final FieldInfo field : fields) {
+    public FieldInfo getField(final String name, final String desc) {
+        for (final FieldInfo field : fields) {
             field.resolve();
             if (!constants.getUtf8(field.nameIndex).equals(name))
                 continue;
             if (!constants.getUtf8(field.descriptorIndex).equals(desc))
                 continue;
-            for (final AccessFlag flag : flags)
-                if (!flag.eval(field.accessFlags))
-                    continue search;
             return field;
         }
         return null;
     }
 
-    public MethodInfo getMethod(final String name, final String desc, final AccessFlag... flags) {
-        search: for (final MethodInfo method : methods) {
+    public MethodInfo getMethod(final String name, final String desc) {
+        for (final MethodInfo method : methods) {
             method.resolve();
             if (!constants.getUtf8(method.nameIndex).equals(name))
                 continue;
             if (!constants.getUtf8(method.descriptorIndex).equals(desc))
                 continue;
-            for (final AccessFlag flag : flags)
-                if (!flag.eval(method.accessFlags))
-                    continue search;
             return method;
         }
         return null;
@@ -178,7 +164,7 @@ public class ClassFile {
         return false;
     }
 
-    public boolean isPrimitiveArray() {
+    public boolean isPrimitive() {
         return false;
     }
 
@@ -211,10 +197,12 @@ public class ClassFile {
 
         if (isArray()) {
             if (otherClass.isArray()) {
-                if (!isPrimitiveArray() && !otherClass.isPrimitiveArray())
+                final boolean thisPrimitiveArray = ((ArrayClassFile) this).arrayClass.isPrimitive();
+                final boolean otherPrimitiveArray = ((ArrayClassFile) otherClass).arrayClass.isPrimitive();
+                if (!thisPrimitiveArray && !otherPrimitiveArray)
                     return ((ArrayClassFile) this).arrayClass.isInstance(((ArrayClassFile) otherClass).arrayClass);
                 else
-                    return isPrimitiveArray() && otherClass.isPrimitiveArray();
+                    return thisPrimitiveArray && otherPrimitiveArray;
             } else {
                 if (otherClass.isInterface())
                     return otherClass.name.equals("java/lang/Cloneable")

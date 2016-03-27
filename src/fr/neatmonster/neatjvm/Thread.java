@@ -2,9 +2,10 @@ package fr.neatmonster.neatjvm;
 
 import java.nio.ByteBuffer;
 
-import fr.neatmonster.neatjvm.ClassFile.PrimitiveArrayClassFile;
+import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
 import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
-import fr.neatmonster.neatjvm.InstanceData.PrimitiveArrayInstanceData;
+import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
+import fr.neatmonster.neatjvm.format.FieldDescriptor;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
@@ -49,7 +50,9 @@ public class Thread {
 
         final int opcode = code.code[pc++] & 0xff;
         switch (opcode) {
-            // CONSTANTS
+            /*
+             * CONSTANTS
+             */
             case 0x0: // nop
                 break;
             case 0x1: // aconst_null
@@ -102,7 +105,9 @@ public class Thread {
                 frame.pushInt(b1 << 8 | b2);
                 break;
             }
-            // LOADS
+            /*
+             * LOADS
+             */
             case 0x15: // iload
             {
                 final int index = code.code[pc++] & 0xff;
@@ -199,8 +204,7 @@ public class Thread {
                     System.exit(0);
                 }
 
-                final PrimitiveArrayInstanceData instance = (PrimitiveArrayInstanceData) vm.handlePool
-                        .getInstance(arrayref);
+                final ArrayInstanceData instance = (ArrayInstanceData) vm.handlePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.arrayLength) {
                     // TODO Throw ArrayIndexOutOfBoundsException
                     System.err.println("ArrayIndexOutOfBoundsException");
@@ -211,7 +215,9 @@ public class Thread {
                 frame.pushInt(value);
                 break;
             }
-            // STORES
+            /*
+             * STORES
+             */
             case 0x36: // istore
             {
                 final byte index = code.code[pc++];
@@ -289,8 +295,7 @@ public class Thread {
                     System.exit(0);
                 }
 
-                final PrimitiveArrayInstanceData instance = (PrimitiveArrayInstanceData) vm.handlePool
-                        .getInstance(arrayref);
+                final ArrayInstanceData instance = (ArrayInstanceData) vm.handlePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.arrayLength) {
                     // TODO Throw ArrayIndexOutOfBoundsException
                     System.err.println("ArrayIndexOutOfBoundsException");
@@ -300,14 +305,18 @@ public class Thread {
                 vm.javaHeap.putInt(instance.dataStart + index * 4, value);
                 break;
             }
-            // STACK
+            /*
+             * STACK
+             */
             case 0x57: // pop
                 frame.popInt();
                 break;
             case 0x59: // dup
                 frame.dup();
                 break;
-            // MATH
+            /*
+             * MATH
+             */
             case 0x60: // iadd
             {
                 final int value2 = frame.popInt();
@@ -367,8 +376,12 @@ public class Thread {
                 frame.storeInt(index, value + const_);
                 break;
             }
-            // CONVERSIONS
-            // COMPARISONS
+            /*
+             * CONVERSIONS
+             */
+            /*
+             * COMPARISONS
+             */
             case 0x99: // ifeq
             case 0x9a: // ifne
             case 0x9b: // iflt
@@ -394,7 +407,9 @@ public class Thread {
                     pc += offset - 3;
                 break;
             }
-            // CONTROL
+            /*
+             * CONTROL
+             */
             case 0xab: // lookupswitch
             {
                 final int instrAddr = pc - 1;
@@ -442,7 +457,9 @@ public class Thread {
             case 0xb1: // return
                 returnVoid();
                 break;
-            // REFERENCES
+            /*
+             * REFERENCES
+             */
             case 0xb2: // getstatic
             {
                 final byte indexbyte1 = code.code[pc++];
@@ -544,7 +561,9 @@ public class Thread {
                 }
                 final byte atype = code.code[pc++];
 
-                final PrimitiveArrayClassFile arrayClass = vm.classLoader.definePrimitiveArrayClass(atype);
+                final FieldDescriptor.BaseType type = FieldDescriptor.BaseType.values()[atype - 4];
+                final ClassFile primitiveClass = vm.classLoader.getClass(type.toString());
+                final ArrayClassFile arrayClass = vm.classLoader.defineArrayClass(primitiveClass);
                 final int arrayref = arrayClass.newInstance(count);
                 frame.pushReference(arrayref);
                 break;
@@ -585,8 +604,12 @@ public class Thread {
                 frame.pushInt(instanceClass.isInstance(resolvedClass) ? 1 : 0);
                 break;
             }
-            // EXTENDED
-            // RESERVED
+            /*
+             * EXTENDED
+             */
+            /*
+             * RESERVED
+             */
             default:
                 System.err.println("Unrecognized opcode 0x" + Integer.toHexString(opcode));
                 System.exit(0);

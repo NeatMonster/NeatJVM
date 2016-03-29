@@ -112,9 +112,4 @@ public class StackFrame {
     public int getReference(final int index) {
         return getInt(index);
     }
-
-    public void dup() {
-        final int value = stackSpace.getInt(stack + (stackTop - 1) * 4);
-        stackSpace.putInt(stack + stackTop++ * 4, value);
-    }
 }

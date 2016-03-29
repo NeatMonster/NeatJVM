@@ -12,14 +12,19 @@ import fr.neatmonster.neatjvm.format.FieldType.BaseType;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute.ExceptionHandler;
+import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
+import fr.neatmonster.neatjvm.format.constant.FloatConstant;
+import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
+import fr.neatmonster.neatjvm.format.constant.LongConstant;
+import fr.neatmonster.neatjvm.format.constant.StringConstant;
 
 public class Thread {
-    public enum ThreadPriority {
-        MIN_PRIORITY, NORM_PRIORITY, MAX_PRIORITY
-    }
-
     public enum ThreadState {
         NEW, RUNNABLE, BLOCKED, WAITING, TERMINATED
+    }
+
+    public enum ThreadPriority {
+        MIN_PRIORITY, NORM_PRIORITY, MAX_PRIORITY
     }
 
     private final int        id;
@@ -159,6 +164,73 @@ public class Thread {
                 final byte byte2 = code[pc++];
                 final int value = byte1 << 8 | byte2;
                 frame.pushInt(value);
+                break;
+            }
+            case 0x12: // ldc
+            {
+                final int index = code[pc++] & 0xff;
+                final ConstantInfo constant = classFile.getConstants()[index - 1];
+
+                if (constant instanceof IntegerConstant) {
+                    final int value = ((IntegerConstant) constant).resolve();
+                    frame.pushInt(value);
+                }
+
+                if (constant instanceof FloatConstant) {
+                    final float value = ((FloatConstant) constant).resolve();
+                    frame.pushFloat(value);
+                }
+
+                if (constant instanceof StringConstant) {
+                    final int value = ((StringConstant) constant).resolve();
+                    frame.pushReference(value);
+                }
+
+                // TODO Add support for Classes, MethodTypes and MethodHandles
+                break;
+            }
+            case 0x13: // ldc_w
+            {
+                final byte indexbyte1 = code[pc++];
+                final byte indexbyte2 = code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+                final ConstantInfo constant = classFile.getConstants()[index - 1];
+
+                if (constant instanceof IntegerConstant) {
+                    final int value = ((IntegerConstant) constant).resolve();
+                    frame.pushInt(value);
+                }
+
+                if (constant instanceof FloatConstant) {
+                    final float value = ((FloatConstant) constant).resolve();
+                    frame.pushFloat(value);
+                }
+
+                if (constant instanceof StringConstant) {
+                    final int value = ((StringConstant) constant).resolve();
+                    frame.pushReference(value);
+                }
+
+                // TODO Add support for Classes, MethodTypes and MethodHandles
+                break;
+            }
+            case 0x14: // ldc
+            {
+                final byte indexbyte1 = code[pc++];
+                final byte indexbyte2 = code[pc++];
+                final int index = indexbyte1 << 8 | indexbyte2;
+                final ConstantInfo constant = classFile.getConstants()[index - 1];
+
+                if (constant instanceof LongConstant) {
+                    final long value = ((LongConstant) constant).resolve();
+                    frame.pushLong(value);
+                }
+
+                if (constant instanceof DoubleConstant) {
+                    final double value = ((DoubleConstant) constant).resolve();
+                    frame.pushDouble(value);
+                }
+
                 break;
             }
             /*
@@ -663,9 +735,61 @@ public class Thread {
             case 0x57: // pop
                 frame.popInt();
                 break;
-            case 0x59: // dup
-                frame.dup();
+            case 0x58: // pop2
+                frame.popInt();
+                frame.popInt();
                 break;
+            case 0x59: // dup
+            {
+                final int value = frame.popInt();
+                frame.pushInt(value);
+                frame.pushInt(value);
+                break;
+            }
+            case 0x5a: // dup_x1
+            {
+                final int value1 = frame.popInt();
+                final int value2 = frame.popInt();
+                frame.pushInt(value1);
+                frame.pushInt(value2);
+                frame.pushInt(value1);
+                break;
+            }
+            case 0x5b: // dup_x2
+            {
+                final int value1 = frame.popInt();
+                final long value2 = frame.popLong();
+                frame.pushInt(value1);
+                frame.pushLong(value2);
+                frame.pushInt(value1);
+                break;
+            }
+            case 0x5c: // dup2
+            {
+                final long value = frame.popLong();
+                frame.pushLong(value);
+                frame.pushLong(value);
+                break;
+            }
+            case 0x5d: // dup2_x1
+            {
+
+                final long value1 = frame.popLong();
+                final int value2 = frame.popInt();
+                frame.pushLong(value1);
+                frame.pushInt(value2);
+                frame.pushLong(value1);
+                break;
+            }
+            case 0x5e: // dup2_x2
+            {
+                final long value1 = frame.popLong();
+                final long value2 = frame.popLong();
+                frame.pushLong(value1);
+                frame.pushLong(value2);
+                frame.pushLong(value1);
+                break;
+            }
             /*
              * MATH
              */
@@ -677,6 +801,30 @@ public class Thread {
                 frame.pushInt(result);
                 break;
             }
+            case 0x61: // ladd
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                final long result = value1 + value2;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x62: // fadd
+            {
+                final float value2 = frame.popFloat();
+                final float value1 = frame.popFloat();
+                final float result = value1 + value2;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x63: // dadd
+            {
+                final double value2 = frame.popDouble();
+                final double value1 = frame.popDouble();
+                final double result = value1 + value2;
+                frame.pushDouble(result);
+                break;
+            }
             case 0x64: // isub
             {
                 final int value2 = frame.popInt();
@@ -685,12 +833,60 @@ public class Thread {
                 frame.pushInt(result);
                 break;
             }
+            case 0x65: // lsub
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                final long result = value1 - value2;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x66: // fsub
+            {
+                final float value2 = frame.popFloat();
+                final float value1 = frame.popFloat();
+                final float result = value1 - value2;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x67: // dsub
+            {
+                final double value2 = frame.popDouble();
+                final double value1 = frame.popDouble();
+                final double result = value1 - value2;
+                frame.pushDouble(result);
+                break;
+            }
             case 0x68: // imul
             {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
                 final int result = value1 * value2;
                 frame.pushInt(result);
+                break;
+            }
+            case 0x69: // lmul
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                final long result = value1 * value2;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x6a: // fmul
+            {
+                final float value2 = frame.popFloat();
+                final float value1 = frame.popFloat();
+                final float result = value1 * value2;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x6b: // dmul
+            {
+                final double value2 = frame.popDouble();
+                final double value1 = frame.popDouble();
+                final double result = value1 * value2;
+                frame.pushDouble(result);
                 break;
             }
             case 0x6c: // idiv
@@ -705,6 +901,42 @@ public class Thread {
                 frame.pushInt(result);
                 break;
             }
+            case 0x6d: // ldiv
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                if (value2 == 0L) {
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
+                }
+                final long result = value1 / value2;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x6e: // fdiv
+            {
+                final float value2 = frame.popFloat();
+                final float value1 = frame.popFloat();
+                if (value2 == 0f) {
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
+                }
+                final float result = value1 / value2;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x6f: // ddiv
+            {
+                final double value2 = frame.popDouble();
+                final double value1 = frame.popDouble();
+                if (value2 == 0.0) {
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
+                }
+                final double result = value1 / value2;
+                frame.pushDouble(result);
+                break;
+            }
             case 0x70: // irem
             {
                 final int value2 = frame.popInt();
@@ -717,6 +949,42 @@ public class Thread {
                 frame.pushInt(result);
                 break;
             }
+            case 0x71: // lrem
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                if (value2 == 0L) {
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
+                }
+                final long result = value1 % value2;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x72: // frem
+            {
+                final float value2 = frame.popFloat();
+                final float value1 = frame.popFloat();
+                if (value2 == 0f) {
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
+                }
+                final float result = value1 % value2;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x73: // drem
+            {
+                final double value2 = frame.popDouble();
+                final double value1 = frame.popDouble();
+                if (value2 == 0.0) {
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
+                }
+                final double result = value1 % value2;
+                frame.pushDouble(result);
+                break;
+            }
             case 0x74: // ineg
             {
                 final int value = frame.popInt();
@@ -724,20 +992,289 @@ public class Thread {
                 frame.pushInt(result);
                 break;
             }
+            case 0x75: // lneg
+            {
+                final long value = frame.popLong();
+                final long result = -value;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x76: // fneg
+            {
+                final float value = frame.popFloat();
+                final float result = -value;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x77: // dneg
+            {
+                final double value = frame.popDouble();
+                final double result = -value;
+                frame.pushDouble(result);
+                break;
+            }
+            case 0x78: // ishl
+            {
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                final int s = value2 & 0x1f;
+                final int result = value1 << s;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x79: // lshl
+            {
+                final int value2 = frame.popInt();
+                final long value1 = frame.popLong();
+                final int s = value2 & 0x1f;
+                final long result = value1 << s;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x7a: // ishr
+            {
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                final int s = value2 & 0x1f;
+                final int result = value1 >> s;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x7b: // lshr
+            {
+                final int value2 = frame.popInt();
+                final long value1 = frame.popLong();
+                final int s = value2 & 0x1f;
+                final long result = value1 >> s;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x7c: // iushr
+            {
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                final int s = value2 & 0x1f;
+                final int result = value1 >>> s;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x7d: // lushr
+            {
+                final int value2 = frame.popInt();
+                final long value1 = frame.popLong();
+                final int s = value2 & 0x1f;
+                final long result = value1 >>> s;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x7e: // iand
+            {
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                final int result = value1 & value2;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x7f: // land
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                final long result = value1 & value2;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x80: // ior
+            {
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                final int result = value1 | value2;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x81: // lor
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                final long result = value1 | value2;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x82: // ixor
+            {
+                final int value2 = frame.popInt();
+                final int value1 = frame.popInt();
+                final int result = value1 ^ value2;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x83: // lxor
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                final long result = value1 ^ value2;
+                frame.pushLong(result);
+                break;
+            }
             case 0x84: // iinc
             {
                 final int index = code[pc++] & 0xff;
                 final byte const_ = code[pc++];
-                final int value = frame.getInt(index);
-                frame.storeInt(index, value + const_);
+                frame.storeInt(index, frame.getInt(index) + const_);
                 break;
             }
             /*
              * CONVERSIONS
              */
+            case 0x85: // i2l
+            {
+                final int value = frame.popInt();
+                final long result = value;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x86: // i2f
+            {
+                final int value = frame.popInt();
+                final float result = value;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x87: // i2d
+            {
+                final int value = frame.popInt();
+                final double result = value;
+                frame.pushDouble(result);
+                break;
+            }
+            case 0x88: // l2i
+            {
+                final long value = frame.popLong();
+                final int result = (int) value;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x89: // l2f
+            {
+                final long value = frame.popLong();
+                final float result = value;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x8a: // l2d
+            {
+                final long value = frame.popLong();
+                final double result = value;
+                frame.pushDouble(result);
+                break;
+            }
+            case 0x8b: // f2i
+            {
+                final float value = frame.popFloat();
+                final int result = (int) value;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x8c: // f2l
+            {
+                final float value = frame.popFloat();
+                final long result = (long) value;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x8d: // f2d
+            {
+                final float value = frame.popFloat();
+                final double result = value;
+                frame.pushDouble(result);
+                break;
+            }
+            case 0x8e: // d2i
+            {
+                final double value = frame.popDouble();
+                final int result = (int) value;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x8f: // d2l
+            {
+                final double value = frame.popDouble();
+                final long result = (long) value;
+                frame.pushLong(result);
+                break;
+            }
+            case 0x90: // d2f
+            {
+                final double value = frame.popDouble();
+                final float result = (float) value;
+                frame.pushFloat(result);
+                break;
+            }
+            case 0x91: // i2b
+            {
+                final int value = frame.popInt();
+                final byte result = (byte) value;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x92: // i2c
+            {
+                final int value = frame.popInt();
+                final char result = (char) value;
+                frame.pushInt(result);
+                break;
+            }
+            case 0x93: // i2s
+            {
+                final int value = frame.popInt();
+                final short result = (short) value;
+                frame.pushInt(result);
+                break;
+            }
             /*
              * COMPARISONS
              */
+            case 0x94: // lcmp
+            {
+                final long value2 = frame.popLong();
+                final long value1 = frame.popLong();
+                if (value1 > value2)
+                    frame.pushInt(1);
+                else if (value1 == value2)
+                    frame.pushInt(0);
+                else if (value1 < value2)
+                    frame.pushInt(-1);
+                break;
+            }
+            case 0x95: // fcmpl
+            case 0x96: // fcmpg
+            {
+                final float value2 = frame.popFloat();
+                final float value1 = frame.popFloat();
+                if (value1 > value2)
+                    frame.pushInt(1);
+                else if (value1 == value2)
+                    frame.pushInt(0);
+                else if (value1 < value2)
+                    frame.pushInt(-1);
+                else
+                    frame.pushInt(opcode == 0x96 ? 1 : -1);
+                break;
+            }
+            case 0x97: // dcmpl
+            case 0x98: // dcmpg
+            {
+                final double value2 = frame.popDouble();
+                final double value1 = frame.popDouble();
+                if (value1 > value2)
+                    frame.pushInt(1);
+                else if (value1 == value2)
+                    frame.pushInt(0);
+                else if (value1 < value2)
+                    frame.pushInt(-1);
+                else
+                    frame.pushInt(opcode == 0x96 ? 1 : -1);
+                break;
+            }
             case 0x99: // ifeq
             case 0x9a: // ifne
             case 0x9b: // iflt
@@ -787,6 +1324,23 @@ public class Thread {
                     pc += offset - 3;
                 break;
             }
+            case 0xa5: // if_acmpeq
+            case 0xa6: // if_acmpne
+            {
+                final byte branchbyte1 = code[pc++];
+                final byte branchbyte2 = code[pc++];
+                final int offset = branchbyte1 << 8 | branchbyte2;
+
+                final int value2 = frame.popReference();
+                final int value1 = frame.popReference();
+
+                boolean cond = opcode == 0xa5 && value1 == value2;
+                cond |= opcode == 0xa6 && value1 != value2;
+
+                if (cond)
+                    pc += offset - 3;
+                break;
+            }
             /*
              * CONTROL
              */
@@ -797,6 +1351,65 @@ public class Thread {
                 final int offset = branchbyte1 << 8 | branchbyte2;
 
                 pc += offset - 3;
+                break;
+            }
+            case 0xa8: // jsr
+            {
+                final byte branchbyte1 = code[pc++];
+                final byte branchbyte2 = code[pc++];
+                final int offset = branchbyte1 << 8 | branchbyte2;
+
+                frame.pushInt(pc);
+                pc += offset - 3;
+                break;
+            }
+            case 0xa9: // ret
+            {
+                final int index = code[pc++] & 0xff;
+                pc = frame.getInt(index);
+                break;
+            }
+            case 0xaa: // tableswitch
+            {
+                final int instrAddr = pc - 1;
+                while (pc % 4 > 0)
+                    ++pc;
+
+                int default_ = 0;
+                default_ |= code[pc++] << 24;
+                default_ |= code[pc++] << 16;
+                default_ |= code[pc++] << 8;
+                default_ |= code[pc++];
+
+                int low = 0;
+                low |= code[pc++] << 24;
+                low |= code[pc++] << 16;
+                low |= code[pc++] << 8;
+                low |= code[pc++];
+
+                int high = 0;
+                high |= code[pc++] << 24;
+                high |= code[pc++] << 16;
+                high |= code[pc++] << 8;
+                high |= code[pc++];
+
+                final int tableAddr = pc;
+
+                int index = frame.popInt();
+                if (index < low || index > high)
+                    pc = instrAddr + default_;
+                else {
+                    index = tableAddr + (index - low) * 4;
+
+                    int offset = 0;
+                    offset |= code[index] << 24;
+                    offset |= code[index + 1] << 16;
+                    offset |= code[index + 2] << 8;
+                    offset |= code[index + 3];
+
+                    pc = instrAddr + offset;
+                }
+
                 break;
             }
             case 0xab: // lookupswitch
@@ -851,6 +1464,66 @@ public class Thread {
                     state = ThreadState.TERMINATED;
                 else {
                     prevFrame.pushInt(value);
+                    contextSwitchDown(prevFrame);
+                }
+                break;
+            }
+            case 0xad: // lreturn
+            {
+                final long value = frame.popLong();
+
+                popFrame();
+
+                final StackFrame prevFrame = getTopFrame();
+                if (prevFrame == null)
+                    state = ThreadState.TERMINATED;
+                else {
+                    prevFrame.pushLong(value);
+                    contextSwitchDown(prevFrame);
+                }
+                break;
+            }
+            case 0xae: // freturn
+            {
+                final float value = frame.popFloat();
+
+                popFrame();
+
+                final StackFrame prevFrame = getTopFrame();
+                if (prevFrame == null)
+                    state = ThreadState.TERMINATED;
+                else {
+                    prevFrame.pushFloat(value);
+                    contextSwitchDown(prevFrame);
+                }
+                break;
+            }
+            case 0xaf: // dreturn
+            {
+                final double value = frame.popDouble();
+
+                popFrame();
+
+                final StackFrame prevFrame = getTopFrame();
+                if (prevFrame == null)
+                    state = ThreadState.TERMINATED;
+                else {
+                    prevFrame.pushDouble(value);
+                    contextSwitchDown(prevFrame);
+                }
+                break;
+            }
+            case 0xb0: // areturn
+            {
+                final int value = frame.popReference();
+
+                popFrame();
+
+                final StackFrame prevFrame = getTopFrame();
+                if (prevFrame == null)
+                    state = ThreadState.TERMINATED;
+                else {
+                    prevFrame.pushReference(value);
                     contextSwitchDown(prevFrame);
                 }
                 break;
@@ -1155,7 +1828,7 @@ public class Thread {
             /*
              * EXTENDED
              */
-            case 0xc7: // ifnonnull
+            case 0xc6: // ifnull
             {
                 final byte branchbyte1 = code[pc++];
                 final byte branchbyte2 = code[pc++];
@@ -1166,9 +1839,40 @@ public class Thread {
                     pc += offset - 3;
                 break;
             }
-            /*
-             * RESERVED
-             */
+            case 0xc7: // ifnonnull
+            {
+                final byte branchbyte1 = code[pc++];
+                final byte branchbyte2 = code[pc++];
+                final int offset = branchbyte1 << 8 | branchbyte2;
+
+                final int value = frame.popReference();
+                if (value != 0)
+                    pc += offset - 3;
+                break;
+            }
+            case 0xc8: // goto_w
+            {
+                int offset = 0;
+                offset |= code[pc++] << 24;
+                offset |= code[pc++] << 16;
+                offset |= code[pc++] << 8;
+                offset |= code[pc++];
+
+                pc += offset - 5;
+                break;
+            }
+            case 0xc9: // jsr_w
+            {
+                int offset = 0;
+                offset |= code[pc++] << 24;
+                offset |= code[pc++] << 16;
+                offset |= code[pc++] << 8;
+                offset |= code[pc++];
+
+                frame.pushInt(pc);
+                pc += offset - 5;
+                break;
+            }
             default:
                 System.err.println("Unrecognized opcode 0x" + Integer.toHexString(opcode));
                 System.exit(0);

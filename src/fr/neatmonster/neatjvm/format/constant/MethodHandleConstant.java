@@ -5,13 +5,13 @@ import java.nio.ByteBuffer;
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
-public class MethodHandlerConstant extends ConstantInfo {
+public class MethodHandleConstant extends ConstantInfo {
     @SuppressWarnings("unused")
     private final byte  referenceKind;
     @SuppressWarnings("unused")
     private final short referenceIndex;
 
-    public MethodHandlerConstant(final ClassFile classFile, final ByteBuffer buf) {
+    public MethodHandleConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
         referenceKind = buf.get();

@@ -13,7 +13,7 @@ import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
 import fr.neatmonster.neatjvm.format.constant.InterfaceMethodrefConstant;
 import fr.neatmonster.neatjvm.format.constant.InvokeDynamicConstant;
 import fr.neatmonster.neatjvm.format.constant.LongConstant;
-import fr.neatmonster.neatjvm.format.constant.MethodHandlerConstant;
+import fr.neatmonster.neatjvm.format.constant.MethodHandleConstant;
 import fr.neatmonster.neatjvm.format.constant.MethodTypeConstant;
 import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
 import fr.neatmonster.neatjvm.format.constant.NameAndTypeConstant;
@@ -35,7 +35,7 @@ public abstract class ConstantInfo implements Resolvable {
         put(10, MethodrefConstant.class);
         put(11, InterfaceMethodrefConstant.class);
         put(12, NameAndTypeConstant.class);
-        put(15, MethodHandlerConstant.class);
+        put(15, MethodHandleConstant.class);
         put(16, MethodTypeConstant.class);
         put(18, InvokeDynamicConstant.class);
     }};
@@ -49,28 +49,8 @@ public abstract class ConstantInfo implements Resolvable {
         return ((Utf8Constant) classFile.getConstants()[index - 1]).resolve();
     }
 
-    public static int getInteger(final ClassFile classFile, final int index) {
-        return ((IntegerConstant) classFile.getConstants()[index - 1]).resolve();
-    }
-
-    public static float getFloat(final ClassFile classFile, final int index) {
-        return ((FloatConstant) classFile.getConstants()[index - 1]).resolve();
-    }
-
-    public static long getLong(final ClassFile classFile, final int index) {
-        return ((LongConstant) classFile.getConstants()[index - 1]).resolve();
-    }
-
-    public static double getDouble(final ClassFile classFile, final int index) {
-        return ((DoubleConstant) classFile.getConstants()[index - 1]).resolve();
-    }
-
     public static ClassFile getClassFile(final ClassFile classFile, final int index) {
         return ((ClassConstant) classFile.getConstants()[index - 1]).resolve();
-    }
-
-    public static String getString(final ClassFile classFile, final int index) {
-        return ((StringConstant) classFile.getConstants()[index - 1]).resolve();
     }
 
     public static FieldInfo getFieldref(final ClassFile classFile, final int index) {
@@ -88,10 +68,6 @@ public abstract class ConstantInfo implements Resolvable {
 
     public static String[] getNameAndType(final ClassFile classFile, final int index) {
         return ((NameAndTypeConstant) classFile.getConstants()[index - 1]).resolve();
-    }
-
-    public static String getMethodType(final ClassFile classFile, final int index) {
-        return ((MethodTypeConstant) classFile.getConstants()[index - 1]).resolve();
     }
 
     protected final ClassFile classFile;

@@ -6,16 +6,16 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class IntegerConstant extends ConstantInfo {
-    public final int resolved;
+    private final int constant;
 
     public IntegerConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
-        resolved = buf.getInt();
+        constant = buf.getInt();
     }
 
     @Override
     public Integer resolve() {
-        return resolved;
+        return constant;
     }
 }

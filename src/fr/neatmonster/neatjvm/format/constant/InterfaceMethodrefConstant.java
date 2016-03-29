@@ -8,8 +8,9 @@ import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 
 public class InterfaceMethodrefConstant extends ConstantInfo {
-    public final short classIndex;
-    public final short nameAndTypeIndex;
+    @SuppressWarnings("unused")
+    private final short classIndex;
+    private final short nameAndTypeIndex;
 
     public InterfaceMethodrefConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -19,12 +20,12 @@ public class InterfaceMethodrefConstant extends ConstantInfo {
     }
 
     @Override
-    public Object resolve() {
+    public MethodInfo resolve() {
         return null;
     }
-    
-    public MethodInfo resolveOn(InstanceData instance) {
-        String[] nameAndType = classFile.constants.getNameAndType(nameAndTypeIndex);
-        return instance.classFile.getMethod(nameAndType[0], nameAndType[1]);
+
+    public MethodInfo resolveOn(final InstanceData instance) {
+        final String[] nameAndType = ConstantInfo.getNameAndType(classFile, nameAndTypeIndex);
+        return instance.getClassFile().getMethod(nameAndType[0], nameAndType[1]);
     }
 }

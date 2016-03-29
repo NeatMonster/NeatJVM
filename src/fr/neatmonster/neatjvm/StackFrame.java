@@ -3,24 +3,24 @@ package fr.neatmonster.neatjvm;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
 public class StackFrame {
-    public HeapManager   stackHeap;
+    private final MemoryPool stackSpace;
 
-    public final int     stack;
-    public int           stackTop;
-    public final int     locals;
+    private final int        stack;
+    private int              stackTop;
+    private final int        locals;
 
-    public int           pc;
-    public CodeAttribute code;
+    int                      pc;
+    CodeAttribute            codeAttr;
 
-    public StackFrame(final Stack frameStack, final short maxStack, final short maxLocals) {
-        stackHeap = frameStack.thread.stackHeap;
+    public StackFrame(final MemoryPool stackSpace, final short maxStack, final short maxLocals) {
+        this.stackSpace = stackSpace;
 
-        stack = stackHeap.allocate(maxStack * 4);
-        locals = stackHeap.allocate(maxLocals * 4);
+        stack = stackSpace.allocate(maxStack * 4);
+        locals = stackSpace.allocate(maxLocals * 4);
     }
 
     public void pushInt(final int value) {
-        stackHeap.putInt(stack + stackTop++ * 4, value);
+        stackSpace.putInt(stack + stackTop++ * 4, value);
     }
 
     public void pushLong(final long value) {
@@ -42,12 +42,8 @@ public class StackFrame {
         pushInt(value);
     }
 
-    public void pushReturnType(final int value) {
-        pushInt(value);
-    }
-
     public int popInt() {
-        return stackHeap.getInt(stack + --stackTop * 4);
+        return stackSpace.getInt(stack + --stackTop * 4);
     }
 
     public long popLong() {
@@ -68,12 +64,12 @@ public class StackFrame {
         return popInt();
     }
 
-    public int popReturnType() {
-        return popInt();
+    public int peekInt(final int offset) {
+        return stackSpace.getInt(stack + (stackTop - offset) * 4);
     }
 
     public void storeInt(final int index, final int value) {
-        stackHeap.putInt(locals + index * 4, value);
+        stackSpace.putInt(locals + index * 4, value);
     }
 
     public void storeLong(final int index, final long value) {
@@ -95,12 +91,8 @@ public class StackFrame {
         storeInt(index, value);
     }
 
-    public void storeReturnType(final int index, final int value) {
-        storeInt(index, value);
-    }
-
     public int getInt(final int index) {
-        return stackHeap.getInt(locals + index * 4);
+        return stackSpace.getInt(locals + index * 4);
     }
 
     public long getLong(final int index) {
@@ -121,12 +113,8 @@ public class StackFrame {
         return getInt(index);
     }
 
-    public int getReturnType(final int index) {
-        return getInt(index);
-    }
-
     public void dup() {
-        final int value = stackHeap.getInt(stack + (stackTop - 1) * 4);
-        stackHeap.putInt(stack + stackTop++ * 4, value);
+        final int value = stackSpace.getInt(stack + (stackTop - 1) * 4);
+        stackSpace.putInt(stack + stackTop++ * 4, value);
     }
 }

@@ -6,16 +6,16 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class FloatConstant extends ConstantInfo {
-    public final float resolved;
+    private final float constant;
 
     public FloatConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
-        resolved = buf.getFloat();
+        constant = buf.getFloat();
     }
 
     @Override
     public Float resolve() {
-        return resolved;
+        return constant;
     }
 }

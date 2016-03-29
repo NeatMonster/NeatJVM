@@ -6,7 +6,7 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class Utf8Constant extends ConstantInfo {
-    public final String value;
+    private final String constant;
 
     public Utf8Constant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -14,11 +14,11 @@ public class Utf8Constant extends ConstantInfo {
         final short length = buf.getShort();
         final byte[] bytes = new byte[length];
         buf.get(bytes);
-        value = new String(bytes);
+        constant = new String(bytes);
     }
 
     @Override
     public String resolve() {
-        return value;
+        return constant;
     }
 }

@@ -1,6 +1,6 @@
 package fr.neatmonster.neatjvm.format;
 
-public enum AccessFlag {
+public enum Modifier {
     // @formatter:off
     PUBLIC(      0x0001,  true,  true,  true),
     PRIVATE(     0x0002, false,  true,  true),
@@ -22,19 +22,31 @@ public enum AccessFlag {
     ENUM(        0x4000,  true,  true, false);
     // @formatter:on
 
-    public short   value;
-    public boolean clazz;
-    public boolean field;
-    public boolean method;
+    private short   value;
+    private boolean classMod;
+    private boolean fieldMod;
+    private boolean methodMod;
 
-    private AccessFlag(final int value, final boolean clazz, final boolean field, final boolean method) {
+    private Modifier(final int value, final boolean classMod, final boolean fieldMod, final boolean methodMod) {
         this.value = (short) value;
-        this.clazz = clazz;
-        this.field = field;
-        this.method = method;
+        this.classMod = classMod;
+        this.fieldMod = fieldMod;
+        this.methodMod = methodMod;
     }
-    
-    public boolean eval(final short accessFlags) {
-        return (accessFlags & value) > 0;
+
+    public boolean eval(final short modifier) {
+        return (modifier & value) > 0;
+    }
+
+    public boolean isClassModifier() {
+        return classMod;
+    }
+
+    public boolean isFieldModifier() {
+        return fieldMod;
+    }
+
+    public boolean isMethodModifier() {
+        return methodMod;
     }
 }

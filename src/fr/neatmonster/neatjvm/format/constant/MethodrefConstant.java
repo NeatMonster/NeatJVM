@@ -7,10 +7,10 @@ import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 
 public class MethodrefConstant extends ConstantInfo {
-    public final short classIndex;
-    public final short nameAndTypeIndex;
+    private final short classIndex;
+    private final short nameAndTypeIndex;
 
-    public MethodInfo  resolved;
+    private MethodInfo  method;
 
     public MethodrefConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -21,11 +21,11 @@ public class MethodrefConstant extends ConstantInfo {
 
     @Override
     public MethodInfo resolve() {
-        if (resolved != null)
-            return resolved;
+        if (method != null)
+            return method;
 
-        ClassFile classFile = this.classFile.constants.getClass(classIndex);
-        String[] nameAndType = this.classFile.constants.getNameAndType(nameAndTypeIndex);
-        return resolved = classFile.getMethod(nameAndType[0], nameAndType[1]);
+        final ClassFile classFile = ConstantInfo.getClassFile(this.classFile, classIndex);
+        final String[] nameAndType = ConstantInfo.getNameAndType(this.classFile, nameAndTypeIndex);
+        return method = classFile.getMethod(nameAndType[0], nameAndType[1]);
     }
 }

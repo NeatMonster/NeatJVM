@@ -6,9 +6,9 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class ClassConstant extends ConstantInfo {
-    public final short nameIndex;
+    private final short nameIndex;
 
-    public ClassFile   resolved;
+    private ClassFile   classFile;
 
     public ClassConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -18,13 +18,10 @@ public class ClassConstant extends ConstantInfo {
 
     @Override
     public ClassFile resolve() {
-        if (resolved != null)
-            return resolved;
+        if (classFile != null)
+            return classFile;
 
-        String resolvedName = classFile.constants.getUtf8(nameIndex);
-        resolved = classFile.loader.getClass(resolvedName);
-        if (resolved == null)
-            resolved = classFile.loader.loadClass(resolvedName);
-        return resolved;
+        final String className = ConstantInfo.getUtf8(super.classFile, nameIndex);
+        return classFile = super.classFile.getClassLoader().loadClass(className);
     }
 }

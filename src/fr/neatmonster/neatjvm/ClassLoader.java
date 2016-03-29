@@ -9,70 +9,64 @@ import java.util.Map;
 
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
 import fr.neatmonster.neatjvm.ClassFile.PrimitiveClassFile;
-import fr.neatmonster.neatjvm.format.FieldDescriptor.BaseType;
+import fr.neatmonster.neatjvm.format.FieldType.BaseType;
 
 public class ClassLoader {
-    public VirtualMachine         vm;
-    public ClassLoader            parent;
-    public Map<String, ClassFile> namespace;
+    private final ClassLoader            parent;
+    private final Map<String, ClassFile> namespace;
 
-    public ClassLoader(final VirtualMachine vm, final ClassLoader parent) {
-        this.vm = vm;
+    public ClassLoader() {
+        this(null);
+    }
+
+    public ClassLoader(final ClassLoader parent) {
         this.parent = parent;
         namespace = new HashMap<>();
 
         if (parent == null) {
             for (final BaseType type : BaseType.values()) {
-                final ClassFile primitiveClass = new PrimitiveClassFile(this, type);
-                namespace.put(primitiveClass.name, primitiveClass);
+                final ClassFile classFile = new PrimitiveClassFile(this, type);
+                namespace.put(classFile.getName(), classFile);
             }
         }
     }
 
-    public ClassFile getClass(final String className) {
+    public ClassLoader getParent() {
+        return parent;
+    }
+
+    public ClassFile findClass(final String className) {
         return namespace.get(className);
     }
 
     public ClassFile loadClass(final String className) {
-        if (parent == null) {
-            byte[] bytes;
-            try {
-                bytes = Files.readAllBytes(new File(className + ".class").toPath());
-                return defineClass(className, ByteBuffer.wrap(bytes));
-            } catch (final IOException e) {
-                e.printStackTrace(System.err);
-                System.exit(0);
-            }
-            return null;
-        } else
+        if (parent != null)
             return parent.loadClass(className);
-    }
 
-    public ClassFile defineClass(final String className, final ByteBuffer buf) {
-        final ClassFile classFile = new ClassFile(this, buf, className);
-        namespace.put(className, classFile);
-
-        if (!className.equals("java/lang/Object")) {
-            if (classFile.superClass != 0)
-                classFile.constants.getClass(classFile.superClass);
-
-            for (final short index : classFile.interfaces)
-                classFile.constants.getClass(index);
-        }
-
-        classFile.initialize();
-        return classFile;
-    }
-
-    public ArrayClassFile defineArrayClass(final ClassFile arrayClass) {
-        final String className = "[" + arrayClass.name;
-
-        ArrayClassFile classFile = (ArrayClassFile) getClass(className);
+        ClassFile classFile = findClass(className);
         if (classFile != null)
             return classFile;
 
-        classFile = new ArrayClassFile(this, arrayClass);
+        if (className.startsWith("[")) {
+            classFile = new ArrayClassFile(this, loadClass(className.substring(1)));
+            namespace.put(className, classFile);
+            return classFile;
+        }
+
+        try {
+            final byte[] classBytes = Files.readAllBytes(new File(className + ".class").toPath());
+            return defineClass(className, ByteBuffer.wrap(classBytes));
+        } catch (final IOException e) {
+            e.printStackTrace(System.err);
+            System.exit(0);
+        }
+        return null;
+    }
+
+    public ClassFile defineClass(final String className, final ByteBuffer buf) {
+        final ClassFile classFile = new ClassFile(this, className, buf);
         namespace.put(className, classFile);
+        classFile.initialize();
         return classFile;
     }
 }

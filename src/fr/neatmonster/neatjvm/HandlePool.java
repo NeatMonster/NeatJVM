@@ -4,22 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HandlePool {
-    public VirtualMachine             vm;
-    public Map<Integer, InstanceData> pool;
-    public int                        nextReference = 1;
+    private final Map<Integer, InstanceData> instances;
+    private int                              nextReference;
 
-    public HandlePool(final VirtualMachine vm) {
-        this.vm = vm;
-        pool = new HashMap<>();
+    public HandlePool() {
+        instances = new HashMap<>();
+        nextReference = 1;
     }
 
     public int addInstance(final InstanceData instance) {
         final int reference = nextReference++;
-        pool.put(reference, instance);
+        instances.put(reference, instance);
         return reference;
     }
 
     public InstanceData getInstance(final int reference) {
-        return pool.get(reference);
+        return instances.get(reference);
     }
 }

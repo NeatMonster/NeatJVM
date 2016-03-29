@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.InstanceData;
 import fr.neatmonster.neatjvm.format.constant.ClassConstant;
 import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
 import fr.neatmonster.neatjvm.format.constant.FieldrefConstant;
@@ -22,7 +23,7 @@ import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 public abstract class ConstantInfo implements Resolvable {
     // @formatter:off
     @SuppressWarnings("serial")
-    public static Map<Integer, Class<? extends ConstantInfo>> ALL = new HashMap<Integer, Class<? extends ConstantInfo>>() {{
+    private static Map<Integer, Class<? extends ConstantInfo>> INTERNAL = new HashMap<Integer, Class<? extends ConstantInfo>>() {{
         put(1, Utf8Constant.class);
         put(3, IntegerConstant.class);
         put(4, FloatConstant.class);
@@ -40,7 +41,60 @@ public abstract class ConstantInfo implements Resolvable {
     }};
     // @formatter:on
 
-    public final ClassFile                                    classFile;
+    public static Class<? extends ConstantInfo> get(final int type) {
+        return INTERNAL.get(type);
+    }
+
+    public static String getUtf8(final ClassFile classFile, final int index) {
+        return ((Utf8Constant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static int getInteger(final ClassFile classFile, final int index) {
+        return ((IntegerConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static float getFloat(final ClassFile classFile, final int index) {
+        return ((FloatConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static long getLong(final ClassFile classFile, final int index) {
+        return ((LongConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static double getDouble(final ClassFile classFile, final int index) {
+        return ((DoubleConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static ClassFile getClassFile(final ClassFile classFile, final int index) {
+        return ((ClassConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static String getString(final ClassFile classFile, final int index) {
+        return ((StringConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static FieldInfo getFieldref(final ClassFile classFile, final int index) {
+        return ((FieldrefConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static MethodInfo getMethodref(final ClassFile classFile, final int index) {
+        return ((MethodrefConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static MethodInfo getInterfaceMethodref(final ClassFile classFile, final int index,
+            final InstanceData instance) {
+        return ((InterfaceMethodrefConstant) classFile.getConstants()[index - 1]).resolveOn(instance);
+    }
+
+    public static String[] getNameAndType(final ClassFile classFile, final int index) {
+        return ((NameAndTypeConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static String getMethodType(final ClassFile classFile, final int index) {
+        return ((MethodTypeConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    protected final ClassFile classFile;
 
     public ConstantInfo(final ClassFile classFile) {
         this.classFile = classFile;

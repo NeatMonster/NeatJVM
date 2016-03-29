@@ -5,19 +5,19 @@ import java.nio.ByteBuffer;
 import fr.neatmonster.neatjvm.ClassFile;
 
 public class FieldInfo implements Resolvable {
-    public final ClassFile       classFile;
-    public final short           accessFlags;
-    public final short           nameIndex;
-    public final short           descriptorIndex;
-    public final AttributeInfo[] attributes;
+    private final ClassFile       classFile;
+    private final short           modifiers;
+    private final short           nameIndex;
+    private final short           descriptorIndex;
+    private final AttributeInfo[] attributes;
 
-    public String                name;
-    public FieldDescriptor       descriptor;
+    private String                name;
+    private FieldType             type;
 
     public FieldInfo(final ClassFile classFile, final ByteBuffer buf) {
         this.classFile = classFile;
 
-        accessFlags = buf.getShort();
+        modifiers = buf.getShort();
         nameIndex = buf.getShort();
         descriptorIndex = buf.getShort();
 
@@ -27,8 +27,8 @@ public class FieldInfo implements Resolvable {
             final short index = buf.getShort();
             final int length = buf.getInt();
             try {
-                final String name = classFile.constants.getUtf8(index);
-                final Class<? extends AttributeInfo> clazz = AttributeInfo.ALL.get(name);
+                final String name = ConstantInfo.getUtf8(classFile, index);
+                final Class<? extends AttributeInfo> clazz = AttributeInfo.get(name);
                 if (clazz == null) {
                     System.err.println("Unrecognized attribute info w/ name " + name);
                     buf.position(buf.position() + length);
@@ -41,18 +41,43 @@ public class FieldInfo implements Resolvable {
         }
     }
 
+    public ClassFile getClassFile() {
+        return classFile;
+    }
+
+    public AttributeInfo[] getAttributes() {
+        return attributes;
+    }
+
+    public short getModifiers() {
+        return modifiers;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public FieldType getType() {
+        return type;
+    }
+
+    @Override
     public FieldInfo resolve() {
         if (name != null)
             return this;
 
-        name = classFile.constants.getUtf8(nameIndex);
-        String descriptorStr = classFile.constants.getUtf8(descriptorIndex);
+        name = ConstantInfo.getUtf8(classFile, nameIndex);
+        final String descriptor = ConstantInfo.getUtf8(classFile, descriptorIndex);
         try {
-            descriptor = new FieldDescriptor(descriptorStr);
-        } catch (Exception e) {
+            type = FieldType.parseType(ByteBuffer.wrap(descriptor.getBytes("UTF-16BE")));
+        } catch (final Exception e) {
             e.printStackTrace(System.err);
             System.exit(0);
         }
         return this;
+    }
+
+    public static int getParameterSize(final FieldInfo field) {
+        return field.getType().getSize() > 4 ? 2 : 1;
     }
 }

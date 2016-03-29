@@ -6,8 +6,10 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class InvokeDynamicConstant extends ConstantInfo {
-    public final short bootstrapMethodAttrIndex;
-    public final short nameAndTypeIndex;
+    @SuppressWarnings("unused")
+    private final short bootstrapMethodAttrIndex;
+    @SuppressWarnings("unused")
+    private final short nameAndTypeIndex;
 
     public InvokeDynamicConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);

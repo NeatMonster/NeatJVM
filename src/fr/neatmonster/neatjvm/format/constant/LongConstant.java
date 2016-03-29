@@ -6,16 +6,16 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class LongConstant extends ConstantInfo {
-    public final long resolved;
+    private final long constant;
 
     public LongConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
-        resolved = buf.getLong();
+        constant = buf.getLong();
     }
 
     @Override
     public Long resolve() {
-        return resolved;
+        return constant;
     }
 }

@@ -6,9 +6,9 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class StringConstant extends ConstantInfo {
-    public final short stringIndex;
+    private final short stringIndex;
 
-    public String      resolved;
+    private String      string;
 
     public StringConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -18,9 +18,9 @@ public class StringConstant extends ConstantInfo {
 
     @Override
     public String resolve() {
-        if (resolved != null)
-            return resolved;
+        if (string != null)
+            return string;
 
-        return resolved = classFile.constants.getUtf8(stringIndex);
+        return string = ConstantInfo.getUtf8(classFile, stringIndex);
     }
 }

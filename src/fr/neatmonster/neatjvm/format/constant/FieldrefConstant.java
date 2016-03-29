@@ -7,10 +7,10 @@ import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 
 public class FieldrefConstant extends ConstantInfo {
-    public final short classIndex;
-    public final short nameAndTypeIndex;
+    private final short classIndex;
+    private final short nameAndTypeIndex;
 
-    public FieldInfo   resolved;
+    private FieldInfo   field;
 
     public FieldrefConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -21,11 +21,11 @@ public class FieldrefConstant extends ConstantInfo {
 
     @Override
     public FieldInfo resolve() {
-        if (resolved != null)
-            return resolved;
+        if (field != null)
+            return field;
 
-        ClassFile classFile = this.classFile.constants.getClass(classIndex);
-        String[] nameAndType = this.classFile.constants.getNameAndType(nameAndTypeIndex);
-        return resolved = classFile.getField(nameAndType[0], nameAndType[1]);
+        final ClassFile classFile = ConstantInfo.getClassFile(this.classFile, classIndex);
+        final String[] nameAndType = ConstantInfo.getNameAndType(classFile, nameAndTypeIndex);
+        return field = classFile.getField(nameAndType[0], nameAndType[1]);
     }
 }

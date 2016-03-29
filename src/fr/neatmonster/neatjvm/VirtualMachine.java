@@ -3,51 +3,89 @@ package fr.neatmonster.neatjvm;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.neatmonster.neatjvm.ExecutionPool.ThreadPriority;
+import fr.neatmonster.neatjvm.Thread.ThreadPriority;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
 public class VirtualMachine {
-    public static final int  MAX_HEAP_SIZE = 1024 * 1024;
+    public static final int       MAX_HEAP_SIZE  = 1024 * 1024;
+    public static final int       MAX_STACK_SIZE = 10 * 1024;
 
-    public HeapManager       javaHeap;
-    public ClassLoader       classLoader;
-    public List<ClassLoader> classLoaders;
-    public Thread            mainThread;
-    public Thread            currentThread;
-    public ExecutionPool     executionPool;
-    public HandlePool        handlePool;
+    private static VirtualMachine instance;
+
+    public static VirtualMachine getInstance() {
+        return instance;
+    }
+
+    public static MemoryPool getHeapSpace() {
+        return instance.heapSpace;
+    }
+
+    public static ClassLoader getClassLoader() {
+        return instance.classLoader;
+    }
+
+    public static List<ClassLoader> getClassLoaders() {
+        return instance.classLoaders;
+    }
+
+    public static HandlePool getHandlePool() {
+        return instance.handlePool;
+    }
+
+    public static ExecutionPool getExecutionPool() {
+        return instance.executionPool;
+    }
+
+    public static Thread getCurrentThread() {
+        return instance.currentThread;
+    }
+
+    public static void setCurrentThread(final Thread thread) {
+        instance.currentThread = thread;
+    }
+
+    private final MemoryPool        heapSpace;
+
+    private final ClassLoader       classLoader;
+    private final List<ClassLoader> classLoaders;
+
+    private final HandlePool        handlePool;
+    private final ExecutionPool     executionPool;
+
+    private Thread                  currentThread;
 
     public VirtualMachine() {
-        javaHeap = new HeapManager(MAX_HEAP_SIZE);
+        instance = this;
 
+        heapSpace = new MemoryPool(MAX_HEAP_SIZE);
+
+        classLoader = new ClassLoader(null);
         classLoaders = new ArrayList<>();
-        classLoaders.add(classLoader = new ClassLoader(this, null));
+        classLoaders.add(classLoader);
 
-        executionPool = new ExecutionPool(this);
-        handlePool = new HandlePool(this);
+        handlePool = new HandlePool();
+        executionPool = new ExecutionPool();
+
+        currentThread = null;
     }
 
     public void start(final String className) {
-        final ClassFile classFile = classLoader.loadClass(className);
-        final MethodInfo main = classFile.getMethod("main", "([Ljava/lang/String;)V");
-        mainThread = runThread(main.resolve().code, null, ThreadPriority.NORM_PRIORITY);
-        run();
-    }
-
-    public void run() {
+        final ClassFile mainClass = instance.classLoader.loadClass(className);
+        final MethodInfo mainMethod = mainClass.getMethod("main", "([Ljava/lang/String;)V");
+        startThread(MethodInfo.getCode(mainMethod.resolve()), ThreadPriority.NORM_PRIORITY);
         while (true) {
-            final Thread nextThread = executionPool.getNextThread();
-            if (nextThread == null)
+            final Thread thread = instance.executionPool.getNextThread();
+            if (thread == null)
                 break;
-            nextThread.tick();
+            thread.tick();
         }
     }
 
-    public Thread runThread(final CodeAttribute code, final InstanceData instance, final ThreadPriority priority) {
-        final Thread thread = new Thread(this, executionPool.getNextThreadId());
-        thread.start(code, instance);
-        executionPool.addThread(thread, priority);
+    public Thread startThread(final CodeAttribute code, final ThreadPriority priority) {
+        final Thread thread = new Thread(instance.executionPool.getNextThreadId());
+        thread.start(code);
+        instance.executionPool.addThread(thread, priority);
         return thread;
     }
 }

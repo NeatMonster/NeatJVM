@@ -6,16 +6,16 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class DoubleConstant extends ConstantInfo {
-    public final double resolved;
+    private final double constant;
 
     public DoubleConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
 
-        resolved = buf.getDouble();
+        constant = buf.getDouble();
     }
 
     @Override
     public Double resolve() {
-        return resolved;
+        return constant;
     }
 }

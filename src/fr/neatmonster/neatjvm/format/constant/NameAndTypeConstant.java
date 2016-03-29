@@ -6,10 +6,10 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class NameAndTypeConstant extends ConstantInfo {
-    public final short nameIndex;
-    public final short descriptorIndex;
+    private final short nameIndex;
+    private final short descriptorIndex;
 
-    public String[]    resolved;
+    private String[]    nameAndType;
 
     public NameAndTypeConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -20,10 +20,10 @@ public class NameAndTypeConstant extends ConstantInfo {
 
     @Override
     public String[] resolve() {
-        if (resolved != null)
-            return resolved;
+        if (nameAndType != null)
+            return nameAndType;
 
-        return resolved = new String[] { classFile.constants.getUtf8(nameIndex),
-                classFile.constants.getUtf8(descriptorIndex) };
+        return nameAndType = new String[] { ConstantInfo.getUtf8(classFile, nameIndex),
+                ConstantInfo.getUtf8(classFile, descriptorIndex) };
     }
 }

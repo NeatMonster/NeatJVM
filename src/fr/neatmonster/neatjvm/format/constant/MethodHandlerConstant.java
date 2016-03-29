@@ -6,8 +6,10 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class MethodHandlerConstant extends ConstantInfo {
-    public final byte  referenceKind;
-    public final short referenceIndex;
+    @SuppressWarnings("unused")
+    private final byte  referenceKind;
+    @SuppressWarnings("unused")
+    private final short referenceIndex;
 
     public MethodHandlerConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);

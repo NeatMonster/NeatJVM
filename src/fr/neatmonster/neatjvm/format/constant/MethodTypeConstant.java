@@ -6,9 +6,9 @@ import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
 
 public class MethodTypeConstant extends ConstantInfo {
-    public final short descriptorIndex;
-    
-    public String resolved;
+    private final short descriptorIndex;
+
+    private String      descriptor;
 
     public MethodTypeConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -18,9 +18,9 @@ public class MethodTypeConstant extends ConstantInfo {
 
     @Override
     public String resolve() {
-        if (resolved != null)
-            return resolved;
-        
-        return resolved = classFile.constants.getUtf8(descriptorIndex);
+        if (descriptor != null)
+            return descriptor;
+
+        return descriptor = ConstantInfo.getUtf8(classFile, descriptorIndex);
     }
 }

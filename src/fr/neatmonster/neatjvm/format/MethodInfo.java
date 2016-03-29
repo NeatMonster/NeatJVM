@@ -106,9 +106,11 @@ public class MethodInfo implements Resolvable {
     }
 
     public static CodeAttribute getCode(final MethodInfo method) {
-        for (final AttributeInfo attribute : method.attributes)
+        for (final AttributeInfo attribute : method.attributes) {
+            attribute.resolve();
             if (attribute instanceof CodeAttribute)
                 return (CodeAttribute) attribute;
+        }
         return null;
     }
 

@@ -18,6 +18,7 @@ public class ClassData extends ObjectData {
         int totalSize = 0;
         final List<FieldInfo> fields = new ArrayList<>();
         for (final FieldInfo field : classFile.getFields()) {
+            field.resolve();
             if (!Modifier.STATIC.eval(field.getModifiers()))
                 continue;
             fields.add(field);

@@ -5,13 +5,16 @@ import java.nio.ByteBuffer;
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.AttributeInfo;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
+import fr.neatmonster.neatjvm.format.Resolvable;
 
 public class CodeAttribute extends AttributeInfo {
-    public static class ExceptionHandler {
+    public class ExceptionHandler implements Resolvable {
         private final short startPC;
         private final short endPC;
         private final short handlerPC;
         private final short catchType;
+
+        private ClassFile   catchClass;
 
         public ExceptionHandler(final ByteBuffer buf) {
             startPC = buf.getShort();
@@ -32,8 +35,15 @@ public class CodeAttribute extends AttributeInfo {
             return handlerPC;
         }
 
-        public short getCatchType() {
-            return catchType;
+        public ClassFile getCatchType() {
+            return catchClass;
+        }
+
+        @Override
+        public ExceptionHandler resolve() {
+            if (catchType > 0 && catchClass == null)
+                catchClass = ConstantInfo.getClassFile(classFile, catchType);
+            return this;
         }
     }
 
@@ -96,5 +106,12 @@ public class CodeAttribute extends AttributeInfo {
 
     public AttributeInfo[] getAttributes() {
         return attributes;
+    }
+
+    @Override
+    public CodeAttribute resolve() {
+        for (final ExceptionHandler exception : exceptions)
+            exception.resolve();
+        return this;
     }
 }

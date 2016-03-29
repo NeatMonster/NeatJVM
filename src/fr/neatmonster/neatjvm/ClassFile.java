@@ -31,8 +31,7 @@ public class ClassFile {
         }
 
         public int newInstance(final int length) {
-            final InstanceData instance = new ArrayInstanceData(this, length);
-            return VirtualMachine.getInstancePool().addInstance(instance);
+            return new ArrayInstanceData(this, length).getReference();
         }
     }
 
@@ -242,8 +241,7 @@ public class ClassFile {
     }
 
     public int newInstance() {
-        final InstanceData instance = new InstanceData(this);
-        return VirtualMachine.getInstancePool().addInstance(instance);
+        return new InstanceData(this).getReference();
     }
 
     public ClassData getInstance() {

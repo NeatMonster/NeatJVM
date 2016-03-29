@@ -36,9 +36,11 @@ public class InstanceData extends ObjectData {
     }
 
     private final Map<FieldInfo, Integer> offsets;
+    private final int                     reference;
 
     public InstanceData(final ClassFile classFile) {
         super(classFile);
+        reference = VirtualMachine.getInstancePool().addInstance(this);
 
         if (classFile instanceof ArrayClassFile) {
             offsets = null;
@@ -67,6 +69,10 @@ public class InstanceData extends ObjectData {
         }
     }
 
+    public int getReference() {
+        return reference;
+    }
+
     @Override
     public void get(final FieldInfo field, final byte[] value) {
         VirtualMachine.getHeapSpace().get(dataStart + offsets.get(field), value, 0, field.getType().getSize());
@@ -84,11 +90,12 @@ public class InstanceData extends ObjectData {
             fields.addAll(getFields(classFile.getSuperclass(), true));
 
         for (final FieldInfo field : classFile.getFields()) {
+            field.resolve();
             if (Modifier.STATIC.eval(field.getModifiers()))
                 continue;
             if (isSuper && Modifier.PRIVATE.eval(field.getModifiers()))
                 continue;
-            fields.add(field.resolve());
+            fields.add(field);
         }
 
         return fields;

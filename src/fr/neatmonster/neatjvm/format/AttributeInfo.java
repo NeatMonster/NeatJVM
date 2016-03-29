@@ -6,7 +6,7 @@ import java.util.Map;
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
-public abstract class AttributeInfo {
+public abstract class AttributeInfo implements Resolvable {
     // @formatter:off
     @SuppressWarnings("serial")
     private static final Map<String, Class<? extends AttributeInfo>> INTERNAL = new HashMap<String, Class<? extends AttributeInfo>>() {{
@@ -18,7 +18,7 @@ public abstract class AttributeInfo {
         return INTERNAL.get(name);
     }
 
-    private final ClassFile classFile;
+    protected final ClassFile classFile;
 
     protected AttributeInfo(final ClassFile classFile) {
         this.classFile = classFile;

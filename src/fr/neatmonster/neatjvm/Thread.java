@@ -11,6 +11,7 @@ import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.FieldType.BaseType;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
+import fr.neatmonster.neatjvm.format.attribute.CodeAttribute.ExceptionHandler;
 
 public class Thread {
     public enum ThreadPriority {
@@ -31,8 +32,10 @@ public class Thread {
     private List<StackFrame> stack;
 
     private int              pc;
-    private byte[]           code;
     private CodeAttribute    codeAttr;
+    private InstanceData     exception;
+
+    private byte[]           code;
     private ClassFile        classFile;
 
     public Thread(final int id) {
@@ -76,8 +79,33 @@ public class Thread {
         final ClassLoader classLoader = VirtualMachine.getClassLoader();
         final InstancePool instancePool = VirtualMachine.getInstancePool();
 
+        if (exception != null) {
+            for (final ExceptionHandler handler : codeAttr.getExceptions()) {
+                if (frame.pc < handler.getStart() || frame.pc >= handler.getEnd())
+                    continue;
+
+                System.out.println("Catch: " + handler.getCatchType().getName());
+                final ClassFile catchClass = handler.getCatchType();
+                if (catchClass == null || exception.getClassFile().extendsClass(catchClass)) {
+                    frame.pushReference(exception.getReference());
+                    pc = handler.getHandler();
+                    exception = null;
+                    return;
+                }
+            }
+
+            popFrame();
+            final StackFrame prevFrame = getTopFrame();
+            if (prevFrame == null)
+                state = ThreadState.TERMINATED;
+            else
+                contextSwitchDown(prevFrame);
+            return;
+        }
+
+        frame.pc = pc;
         final int opcode = code[pc++] & 0xff;
-        switch (opcode) {
+        execution: switch (opcode) {
             /*
              * CONSTANTS
              */
@@ -228,16 +256,14 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    // TODO Throw NullPointerException
-                    System.err.println("NullPointerException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    // TODO Throw ArrayIndexOutOfBoundsException
-                    System.err.println("ArrayIndexOutOfBoundsException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
                 }
 
                 final int value = heapSpace.getInt(instance.dataStart + index * 4);
@@ -250,16 +276,14 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    // TODO Throw NullPointerException
-                    System.err.println("NullPointerException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    // TODO Throw ArrayIndexOutOfBoundsException
-                    System.err.println("ArrayIndexOutOfBoundsException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
                 }
 
                 final int value = heapSpace.getInt(instance.dataStart + index * 4);
@@ -341,16 +365,14 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    // TODO Throw NullPointerException
-                    System.err.println("NullPointerException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    // TODO Throw ArrayIndexOutOfBoundsException
-                    System.err.println("ArrayIndexOutOfBoundsException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
                 }
 
                 heapSpace.putInt(instance.dataStart + index * 4, value);
@@ -363,16 +385,14 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    // TODO Throw NullPointerException
-                    System.err.println("NullPointerException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    // TODO Throw ArrayIndexOutOfBoundsException
-                    System.err.println("ArrayIndexOutOfBoundsException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
                 }
 
                 heapSpace.putInt(instance.dataStart, index * 4 + value);
@@ -419,9 +439,8 @@ public class Thread {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
                 if (value2 == 0) {
-                    // TODO Throw ArithmeticException
-                    System.err.println("ArithmeticException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
                 }
                 final int result = value1 / value2;
                 frame.pushInt(result);
@@ -432,9 +451,8 @@ public class Thread {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
                 if (value2 == 0) {
-                    // TODO Throw ArithmeticException
-                    System.err.println("ArithmeticException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    break;
                 }
                 final int result = value1 % value2;
                 frame.pushInt(result);
@@ -556,7 +574,7 @@ public class Thread {
 
                     if (key == match) {
                         pc = instrAddr + offset;
-                        return;
+                        break execution;
                     }
                 }
 
@@ -564,11 +582,31 @@ public class Thread {
                 break;
             }
             case 0xac: // ireturn
-                returnInt();
+            {
+                final int value = frame.popInt();
+
+                popFrame();
+
+                final StackFrame prevFrame = getTopFrame();
+                if (prevFrame == null)
+                    state = ThreadState.TERMINATED;
+                else {
+                    prevFrame.pushInt(value);
+                    contextSwitchDown(prevFrame);
+                }
                 break;
+            }
             case 0xb1: // return
-                returnVoid();
+            {
+                popFrame();
+
+                final StackFrame prevFrame = getTopFrame();
+                if (prevFrame == null)
+                    state = ThreadState.TERMINATED;
+                else
+                    contextSwitchDown(prevFrame);
                 break;
+            }
             /*
              * REFERENCES
              */
@@ -579,7 +617,14 @@ public class Thread {
                 final int index = indexbyte1 << 8 | indexbyte2;
 
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
-                getStatic(field.resolve());
+
+                final ClassData instance = field.getClassFile().getInstance();
+                final byte[] value = new byte[FieldInfo.getParameterSize(field) * 4];
+                instance.get(field, value);
+
+                final ByteBuffer buf = ByteBuffer.wrap(value);
+                for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
+                    frame.pushInt(buf.getInt());
                 break;
             }
             case 0xb3: // putstatic
@@ -587,9 +632,15 @@ public class Thread {
                 final byte indexbyte1 = code[pc++];
                 final byte indexbyte2 = code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
-
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
-                putStatic(field.resolve());
+
+                final ByteBuffer buf = ByteBuffer.allocate(FieldInfo.getParameterSize(field) * 4);
+                for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
+                    buf.putInt(frame.popInt());
+                final byte[] value = buf.array();
+
+                final ClassData instance = field.getClassFile().getInstance();
+                instance.put(field, value);
                 break;
             }
             case 0xb4: // getfield
@@ -597,9 +648,21 @@ public class Thread {
                 final byte indexbyte1 = code[pc++];
                 final byte indexbyte2 = code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
-
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
-                getField(field.resolve());
+
+                final int objectref = frame.popReference();
+                final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
+                if (instance == null) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final byte[] value = new byte[FieldInfo.getParameterSize(field) * 4];
+                instance.get(field, value);
+
+                final ByteBuffer buf = ByteBuffer.wrap(value);
+                for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
+                    frame.pushInt(buf.getInt());
                 break;
             }
             case 0xb5: // putfield
@@ -607,9 +670,21 @@ public class Thread {
                 final byte indexbyte1 = code[pc++];
                 final byte indexbyte2 = code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
-
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
-                putField(field.resolve());
+
+                final ByteBuffer buf = ByteBuffer.allocate(FieldInfo.getParameterSize(field) * 4);
+                for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
+                    buf.putInt(frame.popInt());
+                final byte[] value = buf.array();
+
+                final int objectref = frame.popReference();
+                final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
+                if (instance == null) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                instance.put(field, value);
                 break;
             }
             case 0xb6: // invokevirtual
@@ -617,9 +692,33 @@ public class Thread {
                 final byte indexbyte1 = code[pc++];
                 final byte indexbyte2 = code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
+                MethodInfo method = ConstantInfo.getMethodref(classFile, index);
+                final int paramsSize = MethodInfo.getParametersSize(method);
 
-                final MethodInfo method = ConstantInfo.getMethodref(classFile, index);
-                invokeVirtual(method.resolve());
+                final int objectref = frame.peekInt(paramsSize + 1);
+                final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
+                if (instance == null) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                int offset = -1;
+                for (int i = 0; i < method.getClassFile().getMethods().length; ++i)
+                    if (method.getClassFile().getMethods()[i] == method) {
+                        offset = i;
+                        break;
+                    }
+                method = instance.getClassFile().getMethods()[offset];
+
+                // TODO Throw IllegalAccessError, AbstractMethodError,
+                // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
+
+                final CodeAttribute newCode = MethodInfo.getCode(method);
+                final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
+                for (int i = paramsSize; i >= 0; --i)
+                    newFrame.storeInt(i, frame.popInt());
+
+                contextSwitchUp(newFrame, newCode);
                 break;
             }
             case 0xb7: // invokespecial
@@ -627,9 +726,25 @@ public class Thread {
                 final byte indexbyte1 = code[pc++];
                 final byte indexbyte2 = code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
-
                 final MethodInfo method = ConstantInfo.getMethodref(classFile, index);
-                invokeSpecial(method.resolve());
+                final int paramsSize = MethodInfo.getParametersSize(method);
+
+                final int objectref = frame.peekInt(paramsSize + 1);
+                final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
+                if (instance == null) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                // TODO Throw IllegalAccessError, AbstractMethodError,
+                // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
+
+                final CodeAttribute newCode = MethodInfo.getCode(method);
+                final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
+                for (int i = paramsSize; i >= 0; --i)
+                    newFrame.storeInt(i, frame.popInt());
+
+                contextSwitchUp(newFrame, newCode);
                 break;
             }
             case 0xb8: // invokestatic
@@ -637,9 +752,15 @@ public class Thread {
                 final byte indexbyte1 = code[pc++];
                 final byte indexbyte2 = code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
-
                 final MethodInfo method = ConstantInfo.getMethodref(classFile, index);
-                invokeStatic(method.resolve());
+                final int paramsSize = MethodInfo.getParametersSize(method);
+
+                final CodeAttribute newCode = MethodInfo.getCode(method);
+                final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
+                for (int i = paramsSize - 1; i >= 0; --i)
+                    newFrame.storeInt(i, frame.popInt());
+
+                contextSwitchUp(newFrame, newCode);
                 break;
             }
             case 0xb9: // invokeinterface
@@ -647,9 +768,26 @@ public class Thread {
                 final byte indexbyte1 = code[pc++];
                 final byte indexbyte2 = code[pc++];
                 final int index = indexbyte1 << 8 | indexbyte2;
-                final int count = code[(pc += 2) - 1] & 0xff;
+                final int paramsSize = code[(pc += 2) - 1] & 0xff;
 
-                invokeInterface(index, count);
+                final int objectref = frame.peekInt(paramsSize + 1);
+                final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
+                if (instance == null) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                // TODO Throw IllegalAccessError, AbstractMethodError,
+                // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
+
+                final MethodInfo method = ConstantInfo.getInterfaceMethodref(classFile, index, instance);
+
+                final CodeAttribute newCode = MethodInfo.getCode(method);
+                final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
+                for (int i = paramsSize; i >= 0; --i)
+                    newFrame.storeInt(i, frame.popInt());
+
+                contextSwitchUp(newFrame, newCode);
                 break;
             }
             case 0xbb: // new
@@ -671,9 +809,8 @@ public class Thread {
 
                 final int count = frame.popInt();
                 if (count < 0) {
-                    // TODO Throw NegativeArraySizeException
-                    System.err.println("NegativeArraySizeException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/NegativeArraySizeException"));
+                    break;
                 }
 
                 final ArrayClassFile arrayClass = (ArrayClassFile) classLoader.loadClass("[" + resolvedClass.getName());
@@ -691,9 +828,8 @@ public class Thread {
 
                 final int count = frame.popInt();
                 if (count < 0) {
-                    // TODO Throw NegativeArraySizeException
-                    System.err.println("NegativeArraySizeException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/NegativeArraySizeException"));
+                    break;
                 }
 
                 final ArrayClassFile arrayClass = (ArrayClassFile) classLoader.loadClass("[" + resolvedClass.getName());
@@ -705,14 +841,24 @@ public class Thread {
             {
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    // TODO Throw NullPointerException
-                    System.err.println("NullPointerException");
-                    System.exit(0);
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 final int length = instance.getLength();
                 frame.pushInt(length);
+                break;
+            }
+            case 0xbf: // athrow
+            {
+                final int objectref = frame.popReference();
+                if (objectref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                throwException(instancePool.getInstance(objectref));
                 break;
             }
             case 0xc0: // checkcast
@@ -725,14 +871,11 @@ public class Thread {
                 final int objectref = frame.popReference();
                 frame.pushReference(objectref);
                 if (objectref == 0)
-                    return;
+                    break;
                 final ClassFile instanceClass = instancePool.getInstance(objectref).getClassFile();
 
-                if (!instanceClass.isInstance(resolvedClass)) {
-                    // TODO Throw ClassCastException
-                    System.err.println("ClassCastException");
-                    System.exit(0);
-                }
+                if (!instanceClass.isInstance(resolvedClass))
+                    throwException(classLoader.loadClass("java/lang/ClassCastException"));
                 break;
             }
             case 0xc1: // instanceof
@@ -774,169 +917,6 @@ public class Thread {
         }
     }
 
-    private void invokeSpecial(final MethodInfo method) {
-        final int paramsSize = MethodInfo.getParametersSize(method);
-
-        final int objectref = frame.peekInt(paramsSize + 1);
-        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
-        if (instance == null) {
-            // TODO Throw NullPointerException
-            System.err.println("NullPointerException");
-            System.exit(0);
-        }
-
-        // TODO Throw IllegalAccessError, AbstractMethodError,
-        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
-
-        final CodeAttribute newCode = MethodInfo.getCode(method);
-        final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
-        for (int i = paramsSize; i >= 0; --i)
-            newFrame.storeInt(i, frame.popInt());
-
-        contextSwitchUp(newFrame, newCode);
-    }
-
-    private void invokeVirtual(MethodInfo method) {
-        final int paramsSize = MethodInfo.getParametersSize(method);
-
-        final int objectref = frame.peekInt(paramsSize + 1);
-        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
-        if (instance == null) {
-            // TODO Throw NullPointerException
-            System.err.println("NullPointerException");
-            System.exit(0);
-        }
-
-        int offset = -1;
-        for (int i = 0; i < method.getClassFile().getMethods().length; ++i)
-            if (method.getClassFile().getMethods()[i] == method) {
-                offset = i;
-                break;
-            }
-        method = instance.getClassFile().getMethods()[offset];
-
-        // TODO Throw IllegalAccessError, AbstractMethodError,
-        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
-
-        final CodeAttribute newCode = MethodInfo.getCode(method);
-        final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
-        for (int i = paramsSize; i >= 0; --i)
-            newFrame.storeInt(i, frame.popInt());
-
-        contextSwitchUp(newFrame, newCode);
-    }
-
-    private void invokeStatic(final MethodInfo method) {
-        final int paramsSize = MethodInfo.getParametersSize(method);
-
-        final CodeAttribute newCode = MethodInfo.getCode(method);
-        final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
-        for (int i = paramsSize - 1; i >= 0; --i)
-            newFrame.storeInt(i, frame.popInt());
-
-        contextSwitchUp(newFrame, newCode);
-    }
-
-    private void invokeInterface(final int index, final int paramsSize) {
-        final int objectref = frame.peekInt(paramsSize + 1);
-        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
-        if (instance == null) {
-            // TODO Throw NullPointerException
-            System.err.println("NullPointerException");
-            System.exit(0);
-        }
-
-        // TODO Throw IllegalAccessError, AbstractMethodError,
-        // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
-
-        final MethodInfo method = ConstantInfo.getInterfaceMethodref(classFile, index, instance);
-
-        final CodeAttribute newCode = MethodInfo.getCode(method);
-        final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
-        for (int i = paramsSize; i >= 0; --i)
-            newFrame.storeInt(i, frame.popInt());
-
-        contextSwitchUp(newFrame, newCode);
-    }
-
-    private void getStatic(final FieldInfo field) {
-        final ClassData instance = field.getClassFile().getInstance();
-        final byte[] value = new byte[FieldInfo.getParameterSize(field) * 4];
-        instance.get(field, value);
-
-        final ByteBuffer buf = ByteBuffer.wrap(value);
-        for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
-            frame.pushInt(buf.getInt());
-    }
-
-    private void putStatic(final FieldInfo field) {
-        final ByteBuffer buf = ByteBuffer.allocate(FieldInfo.getParameterSize(field) * 4);
-        for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
-            buf.putInt(frame.popInt());
-        final byte[] value = buf.array();
-
-        final ClassData instance = field.getClassFile().getInstance();
-        instance.put(field, value);
-    }
-
-    private void getField(final FieldInfo field) {
-        final int objectref = frame.popReference();
-        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
-        if (instance == null) {
-            // TODO Throw NullPointerException
-            System.err.println("NullPointerException");
-            System.exit(0);
-        }
-
-        final byte[] value = new byte[FieldInfo.getParameterSize(field) * 4];
-        instance.get(field, value);
-
-        final ByteBuffer buf = ByteBuffer.wrap(value);
-        for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
-            frame.pushInt(buf.getInt());
-    }
-
-    private void putField(final FieldInfo field) {
-        final ByteBuffer buf = ByteBuffer.allocate(FieldInfo.getParameterSize(field) * 4);
-        for (int i = 0; i < FieldInfo.getParameterSize(field); ++i)
-            buf.putInt(frame.popInt());
-        final byte[] value = buf.array();
-
-        final int objectref = frame.popReference();
-        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
-        if (instance == null) {
-            // TODO Throw NullPointerException
-            System.err.println("NullPointerException");
-            System.exit(0);
-        }
-
-        instance.put(field, value);
-    }
-
-    private void returnInt() {
-        final int returnValue = frame.popInt();
-
-        popFrame();
-
-        final StackFrame prevFrame = getTopFrame();
-        if (prevFrame == null)
-            state = ThreadState.TERMINATED;
-        else {
-            prevFrame.pushInt(returnValue);
-            contextSwitchDown(prevFrame);
-        }
-    }
-
-    private void returnVoid() {
-        popFrame();
-
-        final StackFrame prevFrame = getTopFrame();
-        if (prevFrame == null)
-            state = ThreadState.TERMINATED;
-        else
-            contextSwitchDown(prevFrame);
-    }
-
     private void contextSwitchUp(final StackFrame newFrame, final CodeAttribute newCodeAttr) {
         frame.pc = pc;
         frame.codeAttr = codeAttr;
@@ -954,6 +934,16 @@ public class Thread {
         codeAttr = prevFrame.codeAttr;
         classFile = prevFrame.codeAttr.getClassFile();
         code = prevFrame.codeAttr.getCode();
+    }
+
+    private void throwException(final ClassFile classFile) {
+        final int objectref = classFile.newInstance();
+        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
+        throwException(instance);
+    }
+
+    private void throwException(final InstanceData instance) {
+        exception = instance;
     }
 
     private StackFrame getTopFrame() {

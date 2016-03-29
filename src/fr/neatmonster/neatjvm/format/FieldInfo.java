@@ -67,6 +67,7 @@ public class FieldInfo implements Resolvable {
             return this;
 
         name = ConstantInfo.getUtf8(classFile, nameIndex);
+
         final String descriptor = ConstantInfo.getUtf8(classFile, descriptorIndex);
         try {
             type = FieldType.parseType(ByteBuffer.wrap(descriptor.getBytes("UTF-16BE")));
@@ -74,6 +75,7 @@ public class FieldInfo implements Resolvable {
             e.printStackTrace(System.err);
             System.exit(0);
         }
+
         return this;
     }
 

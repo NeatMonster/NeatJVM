@@ -32,7 +32,7 @@ public class ClassFile {
 
         public int newInstance(final int length) {
             final InstanceData instance = new ArrayInstanceData(this, length);
-            return VirtualMachine.getHandlePool().addInstance(instance);
+            return VirtualMachine.getInstancePool().addInstance(instance);
         }
     }
 
@@ -243,7 +243,7 @@ public class ClassFile {
 
     public int newInstance() {
         final InstanceData instance = new InstanceData(this);
-        return VirtualMachine.getHandlePool().addInstance(instance);
+        return VirtualMachine.getInstancePool().addInstance(instance);
     }
 
     public ClassData getInstance() {
@@ -253,10 +253,7 @@ public class ClassFile {
     public boolean extendsClass(final ClassFile classFile) {
         if (equals(classFile))
             return true;
-
-        if (superclass == null)
-            return false;
-        return superclass.extendsClass(classFile);
+        return superclass != null && superclass.extendsClass(classFile);
     }
 
     public boolean implementsClass(final ClassFile classFile) {

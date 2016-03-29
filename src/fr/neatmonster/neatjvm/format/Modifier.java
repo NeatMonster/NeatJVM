@@ -22,12 +22,12 @@ public enum Modifier {
     ENUM(        0x4000,  true,  true, false);
     // @formatter:on
 
-    private short   value;
-    private boolean classMod;
-    private boolean fieldMod;
-    private boolean methodMod;
+    private final short   value;
+    private final boolean classMod;
+    private final boolean fieldMod;
+    private final boolean methodMod;
 
-    private Modifier(final int value, final boolean classMod, final boolean fieldMod, final boolean methodMod) {
+    Modifier(final int value, final boolean classMod, final boolean fieldMod, final boolean methodMod) {
         this.value = (short) value;
         this.classMod = classMod;
         this.fieldMod = fieldMod;

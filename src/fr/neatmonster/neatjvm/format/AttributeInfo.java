@@ -9,7 +9,7 @@ import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 public abstract class AttributeInfo {
     // @formatter:off
     @SuppressWarnings("serial")
-    private static Map<String, Class<? extends AttributeInfo>> INTERNAL = new HashMap<String, Class<? extends AttributeInfo>>() {{
+    private static final Map<String, Class<? extends AttributeInfo>> INTERNAL = new HashMap<String, Class<? extends AttributeInfo>>() {{
         put("Code", CodeAttribute.class);
     }};
     // @formatter:on
@@ -20,7 +20,7 @@ public abstract class AttributeInfo {
 
     private final ClassFile classFile;
 
-    public AttributeInfo(final ClassFile classFile) {
+    protected AttributeInfo(final ClassFile classFile) {
         this.classFile = classFile;
     }
 

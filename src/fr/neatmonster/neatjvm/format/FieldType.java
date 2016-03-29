@@ -3,7 +3,7 @@ package fr.neatmonster.neatjvm.format;
 import java.nio.ByteBuffer;
 
 public interface FieldType {
-    public static enum BaseType implements FieldType {
+    enum BaseType implements FieldType {
         // @formatter:off
         BOOLEAN('Z', 1),
         CHAR(   'C', 2),
@@ -18,7 +18,7 @@ public interface FieldType {
         private final char   terminal;
         private final byte[] defaultValue;
 
-        private BaseType(final char terminal, final int size) {
+        BaseType(final char terminal, final int size) {
             this.terminal = terminal;
             defaultValue = new byte[size];
         }
@@ -43,7 +43,7 @@ public interface FieldType {
         }
     }
 
-    public static class ObjectType implements FieldType {
+    class ObjectType implements FieldType {
         private final String className;
         private final byte[] defaultValue;
 
@@ -72,7 +72,7 @@ public interface FieldType {
         }
     }
 
-    public static class ArrayType implements FieldType {
+    class ArrayType implements FieldType {
         private final FieldType type;
         private final byte[]    defaultBytes;
 
@@ -101,11 +101,11 @@ public interface FieldType {
         }
     }
 
-    public int getSize();
+    int getSize();
 
-    public byte[] getDefaultValue();
+    byte[] getDefaultValue();
 
-    public static FieldType parseType(final ByteBuffer buf) {
+    static FieldType parseType(final ByteBuffer buf) {
         final char typeChar = buf.getChar();
 
         for (final BaseType type : BaseType.values())

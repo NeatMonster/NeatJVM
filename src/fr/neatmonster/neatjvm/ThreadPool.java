@@ -6,11 +6,11 @@ import java.util.Map;
 import fr.neatmonster.neatjvm.Thread.ThreadPriority;
 import fr.neatmonster.neatjvm.Thread.ThreadState;
 
-public class ExecutionPool {
+public class ThreadPool {
     private final Map<Thread, ThreadPriority> threads;
     private int                               nextThreadId = 0;
 
-    public ExecutionPool() {
+    public ThreadPool() {
         threads = new HashMap<>();
     }
 

@@ -23,7 +23,7 @@ import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
 public abstract class ConstantInfo implements Resolvable {
     // @formatter:off
     @SuppressWarnings("serial")
-    private static Map<Integer, Class<? extends ConstantInfo>> INTERNAL = new HashMap<Integer, Class<? extends ConstantInfo>>() {{
+    private static final Map<Integer, Class<? extends ConstantInfo>> INTERNAL = new HashMap<Integer, Class<? extends ConstantInfo>>() {{
         put(1, Utf8Constant.class);
         put(3, IntegerConstant.class);
         put(4, FloatConstant.class);
@@ -96,7 +96,7 @@ public abstract class ConstantInfo implements Resolvable {
 
     protected final ClassFile classFile;
 
-    public ConstantInfo(final ClassFile classFile) {
+    protected ConstantInfo(final ClassFile classFile) {
         this.classFile = classFile;
     }
 }

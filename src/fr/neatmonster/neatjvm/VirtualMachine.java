@@ -29,12 +29,12 @@ public class VirtualMachine {
         return instance.classLoaders;
     }
 
-    public static HandlePool getHandlePool() {
+    public static InstancePool getInstancePool() {
         return instance.handlePool;
     }
 
-    public static ExecutionPool getExecutionPool() {
-        return instance.executionPool;
+    public static ThreadPool getThreadPool() {
+        return instance.threadPool;
     }
 
     public static Thread getCurrentThread() {
@@ -50,8 +50,8 @@ public class VirtualMachine {
     private final ClassLoader       classLoader;
     private final List<ClassLoader> classLoaders;
 
-    private final HandlePool        handlePool;
-    private final ExecutionPool     executionPool;
+    private final InstancePool      handlePool;
+    private final ThreadPool        threadPool;
 
     private Thread                  currentThread;
 
@@ -64,8 +64,8 @@ public class VirtualMachine {
         classLoaders = new ArrayList<>();
         classLoaders.add(classLoader);
 
-        handlePool = new HandlePool();
-        executionPool = new ExecutionPool();
+        handlePool = new InstancePool();
+        threadPool = new ThreadPool();
 
         currentThread = null;
     }
@@ -75,7 +75,7 @@ public class VirtualMachine {
         final MethodInfo mainMethod = mainClass.getMethod("main", "([Ljava/lang/String;)V");
         startThread(MethodInfo.getCode(mainMethod.resolve()), ThreadPriority.NORM_PRIORITY);
         while (true) {
-            final Thread thread = instance.executionPool.getNextThread();
+            final Thread thread = instance.threadPool.getNextThread();
             if (thread == null)
                 break;
             thread.tick();
@@ -83,9 +83,9 @@ public class VirtualMachine {
     }
 
     public Thread startThread(final CodeAttribute code, final ThreadPriority priority) {
-        final Thread thread = new Thread(instance.executionPool.getNextThreadId());
+        final Thread thread = new Thread(instance.threadPool.getNextThreadId());
         thread.start(code);
-        instance.executionPool.addThread(thread, priority);
+        instance.threadPool.addThread(thread, priority);
         return thread;
     }
 }

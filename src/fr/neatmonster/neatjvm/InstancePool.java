@@ -3,11 +3,11 @@ package fr.neatmonster.neatjvm;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HandlePool {
+public class InstancePool {
     private final Map<Integer, InstanceData> instances;
     private int                              nextReference;
 
-    public HandlePool() {
+    public InstancePool() {
         instances = new HashMap<>();
         nextReference = 1;
     }

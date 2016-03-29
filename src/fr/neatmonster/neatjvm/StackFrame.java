@@ -24,8 +24,8 @@ public class StackFrame {
     }
 
     public void pushLong(final long value) {
-        pushInt((int) (value & 0xffffffff));
-        pushInt((int) (value >> 16 & 0xffffffff));
+        pushInt((int) value);
+        pushInt((int) (value >> 16));
     }
 
     public void pushFloat(final float value) {
@@ -34,8 +34,8 @@ public class StackFrame {
 
     public void pushDouble(final double value) {
         final long bits = Double.doubleToRawLongBits(value);
-        pushInt((int) (bits & 0xffffffff));
-        pushInt((int) (bits >> 16 & 0xffffffff));
+        pushInt((int) bits);
+        pushInt((int) (bits >> 16));
     }
 
     public void pushReference(final int value) {
@@ -73,8 +73,8 @@ public class StackFrame {
     }
 
     public void storeLong(final int index, final long value) {
-        storeInt(index, (int) (value & 0xffffffff));
-        storeInt(index + 1, (int) (value >> 16 & 0xffffffff));
+        storeInt(index, (int) value);
+        storeInt(index + 1, (int) (value >> 16));
     }
 
     public void storeFloat(final int index, final float value) {
@@ -83,8 +83,8 @@ public class StackFrame {
 
     public void storeDouble(final int index, final double value) {
         final long bits = Double.doubleToRawLongBits(value);
-        storeInt(index, (int) (bits & 0xffffffff));
-        storeInt(index + 1, (int) (bits >> 16 & 0xffffffff));
+        storeInt(index, (int) bits);
+        storeInt(index + 1, (int) (bits >> 16));
     }
 
     public void storeReference(final int index, final int value) {

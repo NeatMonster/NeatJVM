@@ -13,12 +13,12 @@ import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
 public class Thread {
-    public static enum ThreadPriority {
-        MIN_PRIORITY, NORM_PRIORITY, MAX_PRIORITY;
+    public enum ThreadPriority {
+        MIN_PRIORITY, NORM_PRIORITY, MAX_PRIORITY
     }
 
-    public static enum ThreadState {
-        NEW, RUNNABLE, BLOCKED, WAITING, TERMINATED;
+    public enum ThreadState {
+        NEW, RUNNABLE, BLOCKED, WAITING, TERMINATED
     }
 
     private final int        id;
@@ -63,7 +63,7 @@ public class Thread {
         classFile = codeAttr.getClassFile();
         code = codeAttr.getCode();
 
-        stack = new ArrayList<StackFrame>();
+        stack = new ArrayList<>();
         frame = pushFrame(codeAttr.getMaxStack(), codeAttr.getMaxLocals());
 
         state = ThreadState.RUNNABLE;
@@ -74,7 +74,7 @@ public class Thread {
 
         final MemoryPool heapSpace = VirtualMachine.getHeapSpace();
         final ClassLoader classLoader = VirtualMachine.getClassLoader();
-        final HandlePool handlePool = VirtualMachine.getHandlePool();
+        final InstancePool instancePool = VirtualMachine.getInstancePool();
 
         final int opcode = code[pc++] & 0xff;
         switch (opcode) {
@@ -233,7 +233,7 @@ public class Thread {
                     System.exit(0);
                 }
 
-                final ArrayInstanceData instance = (ArrayInstanceData) handlePool.getInstance(arrayref);
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
                     // TODO Throw ArrayIndexOutOfBoundsException
                     System.err.println("ArrayIndexOutOfBoundsException");
@@ -255,7 +255,7 @@ public class Thread {
                     System.exit(0);
                 }
 
-                final ArrayInstanceData instance = (ArrayInstanceData) handlePool.getInstance(arrayref);
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
                     // TODO Throw ArrayIndexOutOfBoundsException
                     System.err.println("ArrayIndexOutOfBoundsException");
@@ -346,7 +346,7 @@ public class Thread {
                     System.exit(0);
                 }
 
-                final ArrayInstanceData instance = (ArrayInstanceData) handlePool.getInstance(arrayref);
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
                     // TODO Throw ArrayIndexOutOfBoundsException
                     System.err.println("ArrayIndexOutOfBoundsException");
@@ -368,7 +368,7 @@ public class Thread {
                     System.exit(0);
                 }
 
-                final ArrayInstanceData instance = (ArrayInstanceData) handlePool.getInstance(arrayref);
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
                     // TODO Throw ArrayIndexOutOfBoundsException
                     System.err.println("ArrayIndexOutOfBoundsException");
@@ -474,8 +474,7 @@ public class Thread {
 
                 final int value = frame.popInt();
 
-                boolean cond = false;
-                cond |= opcode == 0x99 && value == 0;
+                boolean cond = opcode == 0x99 && value == 0;
                 cond |= opcode == 0x9a && value != 0;
                 cond |= opcode == 0x9b && value < 0;
                 cond |= opcode == 0x9c && value >= 0;
@@ -500,8 +499,7 @@ public class Thread {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
 
-                boolean cond = false;
-                cond |= opcode == 0x9f && value1 == value2;
+                boolean cond = opcode == 0x9f && value1 == value2;
                 cond |= opcode == 0xa0 && value1 != value2;
                 cond |= opcode == 0xa1 && value1 < value2;
                 cond |= opcode == 0xa2 && value1 >= value2;
@@ -712,7 +710,7 @@ public class Thread {
                     System.exit(0);
                 }
 
-                final ArrayInstanceData instance = (ArrayInstanceData) handlePool.getInstance(arrayref);
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 final int length = instance.getLength();
                 frame.pushInt(length);
                 break;
@@ -728,7 +726,7 @@ public class Thread {
                 frame.pushReference(objectref);
                 if (objectref == 0)
                     return;
-                final ClassFile instanceClass = handlePool.getInstance(objectref).getClassFile();
+                final ClassFile instanceClass = instancePool.getInstance(objectref).getClassFile();
 
                 if (!instanceClass.isInstance(resolvedClass)) {
                     // TODO Throw ClassCastException
@@ -747,7 +745,7 @@ public class Thread {
                 final int objectref = frame.popReference();
                 if (objectref == 0)
                     frame.pushInt(0);
-                final ClassFile instanceClass = handlePool.getInstance(objectref).getClassFile();
+                final ClassFile instanceClass = instancePool.getInstance(objectref).getClassFile();
 
                 frame.pushInt(instanceClass.isInstance(resolvedClass) ? 1 : 0);
                 break;
@@ -780,7 +778,7 @@ public class Thread {
         final int paramsSize = MethodInfo.getParametersSize(method);
 
         final int objectref = frame.peekInt(paramsSize + 1);
-        final InstanceData instance = VirtualMachine.getHandlePool().getInstance(objectref);
+        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
         if (instance == null) {
             // TODO Throw NullPointerException
             System.err.println("NullPointerException");
@@ -802,7 +800,7 @@ public class Thread {
         final int paramsSize = MethodInfo.getParametersSize(method);
 
         final int objectref = frame.peekInt(paramsSize + 1);
-        final InstanceData instance = VirtualMachine.getHandlePool().getInstance(objectref);
+        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
         if (instance == null) {
             // TODO Throw NullPointerException
             System.err.println("NullPointerException");
@@ -841,7 +839,7 @@ public class Thread {
 
     private void invokeInterface(final int index, final int paramsSize) {
         final int objectref = frame.peekInt(paramsSize + 1);
-        final InstanceData instance = VirtualMachine.getHandlePool().getInstance(objectref);
+        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
         if (instance == null) {
             // TODO Throw NullPointerException
             System.err.println("NullPointerException");
@@ -883,7 +881,7 @@ public class Thread {
 
     private void getField(final FieldInfo field) {
         final int objectref = frame.popReference();
-        final InstanceData instance = VirtualMachine.getHandlePool().getInstance(objectref);
+        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
         if (instance == null) {
             // TODO Throw NullPointerException
             System.err.println("NullPointerException");
@@ -905,7 +903,7 @@ public class Thread {
         final byte[] value = buf.array();
 
         final int objectref = frame.popReference();
-        final InstanceData instance = VirtualMachine.getHandlePool().getInstance(objectref);
+        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
         if (instance == null) {
             // TODO Throw NullPointerException
             System.err.println("NullPointerException");

@@ -38,6 +38,30 @@ public class MemoryPool {
         return heap.getInt(addr);
     }
 
+    public long getLong(final int addr) {
+        return heap.getLong(addr);
+    }
+
+    public float getFloat(final int addr) {
+        return heap.getFloat(addr);
+    }
+
+    public double getDouble(final int addr) {
+        return heap.getDouble(addr);
+    }
+
+    public int getReference(final int addr) {
+        return heap.getInt(addr);
+    }
+
+    public char getChar(final int addr) {
+        return heap.getChar(addr);
+    }
+
+    public short getShort(final int addr) {
+        return heap.getShort(addr);
+    }
+
     public void put(final int addr, final byte value) {
         heap.put(addr, value);
     }
@@ -54,5 +78,29 @@ public class MemoryPool {
 
     public void putInt(final int addr, final int value) {
         heap.putInt(addr, value);
+    }
+
+    public void putLong(final int addr, final long value) {
+        heap.putLong(addr, value);
+    }
+
+    public void putFloat(final int addr, final float value) {
+        heap.putFloat(addr, value);
+    }
+
+    public void putDouble(final int addr, final double value) {
+        heap.putDouble(addr, value);
+    }
+
+    public void putReference(final int addr, final int value) {
+        heap.putInt(addr, value);
+    }
+
+    public void putChar(final int addr, final char value) {
+        heap.putChar(addr, value);
+    }
+
+    public void putShort(final int addr, final short value) {
+        heap.putShort(addr, value);
     }
 }

@@ -84,7 +84,6 @@ public class Thread {
                 if (frame.pc < handler.getStart() || frame.pc >= handler.getEnd())
                     continue;
 
-                System.out.println("Catch: " + handler.getCatchType().getName());
                 final ClassFile catchClass = handler.getCatchType();
                 if (catchClass == null || exception.getClassFile().extendsClass(catchClass)) {
                     frame.pushReference(exception.getReference());
@@ -270,6 +269,66 @@ public class Thread {
                 frame.pushInt(value);
                 break;
             }
+            case 0x2f: // laload
+            {
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                final long value = heapSpace.getLong(instance.dataStart + index * 8);
+                frame.pushLong(value);
+                break;
+            }
+            case 0x30: // faload
+            {
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                final float value = heapSpace.getFloat(instance.dataStart + index * 4);
+                frame.pushFloat(value);
+                break;
+            }
+            case 0x31: // daload
+            {
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                final double value = heapSpace.getDouble(instance.dataStart + index * 8);
+                frame.pushDouble(value);
+                break;
+            }
             case 0x32: // aaload
             {
                 final int index = frame.popInt();
@@ -286,8 +345,68 @@ public class Thread {
                     break;
                 }
 
-                final int value = heapSpace.getInt(instance.dataStart + index * 4);
+                final int value = heapSpace.getReference(instance.dataStart + index * 4);
                 frame.pushReference(value);
+                break;
+            }
+            case 0x33: // baload
+            {
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                final byte value = heapSpace.get(instance.dataStart + index);
+                frame.pushInt(value);
+                break;
+            }
+            case 0x34: // caload
+            {
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                final char value = heapSpace.getChar(instance.dataStart + index * 2);
+                frame.pushInt(value);
+                break;
+            }
+            case 0x35: // saload
+            {
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                final short value = heapSpace.getShort(instance.dataStart + index * 2);
+                frame.pushInt(value);
                 break;
             }
             /*
@@ -348,6 +467,26 @@ public class Thread {
                 frame.storeLong(n, value);
                 break;
             }
+            case 0x43: // fstore_0
+            case 0x44: // fstore_1
+            case 0x45: // fstore_2
+            case 0x46: // fstore_3
+            {
+                final int n = opcode - 0x3f;
+                final float value = frame.popFloat();
+                frame.storeFloat(n, value);
+                break;
+            }
+            case 0x47: // dstore_0
+            case 0x48: // dstore_1
+            case 0x49: // dstore_2
+            case 0x4a: // dstore_3
+            {
+                final int n = opcode - 0x3f;
+                final double value = frame.popDouble();
+                frame.storeDouble(n, value);
+                break;
+            }
             case 0x4b: // astore_0
             case 0x4c: // astore_1
             case 0x4d: // astore_2
@@ -378,6 +517,66 @@ public class Thread {
                 heapSpace.putInt(instance.dataStart + index * 4, value);
                 break;
             }
+            case 0x50: // lastore
+            {
+                final long value = frame.popLong();
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                heapSpace.putLong(instance.dataStart + index * 8, value);
+                break;
+            }
+            case 0x51: // fastore
+            {
+                final float value = frame.popFloat();
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                heapSpace.putFloat(instance.dataStart + index * 4, value);
+                break;
+            }
+            case 0x52: // dastore
+            {
+                final double value = frame.popDouble();
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                heapSpace.putDouble(instance.dataStart + index * 8, value);
+                break;
+            }
             case 0x53: // aastore
             {
                 final int value = frame.popReference();
@@ -395,7 +594,67 @@ public class Thread {
                     break;
                 }
 
-                heapSpace.putInt(instance.dataStart, index * 4 + value);
+                heapSpace.putReference(instance.dataStart + index * 4, value);
+                break;
+            }
+            case 0x54: // bastore
+            {
+                final byte value = (byte) frame.popInt();
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                heapSpace.put(instance.dataStart + index, value);
+                break;
+            }
+            case 0x55: // castore
+            {
+                final char value = (char) frame.popInt();
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                heapSpace.putChar(instance.dataStart + index * 2, value);
+                break;
+            }
+            case 0x56: // sastore
+            {
+                final short value = (short) frame.popInt();
+                final int index = frame.popInt();
+
+                final int arrayref = frame.popReference();
+                if (arrayref == 0) {
+                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    break;
+                }
+
+                final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
+                if (index < 0 || index >= instance.getLength()) {
+                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    break;
+                }
+
+                heapSpace.putShort(instance.dataStart + index * 2, value);
                 break;
             }
             /*

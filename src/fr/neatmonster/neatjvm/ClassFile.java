@@ -11,13 +11,15 @@ import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.FieldType.BaseType;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.Modifier;
+import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
+import fr.neatmonster.neatjvm.format.constant.LongConstant;
 
 public class ClassFile {
     public static class ArrayClassFile extends ClassFile {
         private final ClassFile arrayClass;
 
         public ArrayClassFile(final ClassLoader loader, final ClassFile arrayClass) {
-            super(loader, "[" + arrayClass.name);
+            super(loader, "[L" + arrayClass.name + ";");
             this.arrayClass = arrayClass;
         }
 
@@ -73,15 +75,28 @@ public class ClassFile {
         this.loader = loader;
         this.name = name;
 
-        if (buf == null) {
+        if (isPrimitive()) {
             instance = null;
             constants = null;
-            modifiers = 0;
+            modifiers = 0x0;
             superclass = null;
             interfaces = null;
             fields = null;
             methods = null;
             attributes = null;
+            return;
+        }
+
+        if (isArray()) {
+            instance = null;
+            constants = new ConstantInfo[0];
+            modifiers = 0x411;
+            superclass = loader.loadClass("java/lang/Object");
+            interfaces = new ClassFile[] { loader.loadClass("java/lang/Cloneable"),
+                    loader.loadClass("java/io/Serializable") };
+            fields = new FieldInfo[0];
+            methods = new MethodInfo[0];
+            attributes = new AttributeInfo[0];
             return;
         }
 
@@ -97,8 +112,10 @@ public class ClassFile {
                 final Class<? extends ConstantInfo> clazz = ConstantInfo.get(tag);
                 if (clazz == null)
                     System.err.println("Unrecognized constant info w/ tag " + tag);
-                else
+                else {
                     constants[i] = clazz.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(this, buf);
+                    i = constants[i] instanceof LongConstant || constants[i] instanceof DoubleConstant ? ++i : i;
+                }
             } catch (final Exception e) {
                 e.printStackTrace(System.err);
                 System.exit(0);
@@ -153,7 +170,7 @@ public class ClassFile {
     }
 
     public void initialize() {
-        final MethodInfo cinit = getMethod("<cinit>", "()V");
+        final MethodInfo cinit = getMethod("<clinit>", "()V");
         if (cinit == null)
             return;
         cinit.resolve();
@@ -180,15 +197,24 @@ public class ClassFile {
         return constants;
     }
 
-    public FieldInfo getField(final String name, final String desc) {
+    public FieldInfo getField(final String name, final String descriptor) {
         for (final FieldInfo field : fields) {
             field.resolve();
             if (!field.getName().equals(name))
                 continue;
-            if (!field.getType().toString().equals(desc))
+            if (!field.getType().toString().equals(descriptor))
                 continue;
             return field;
         }
+
+        for (final ClassFile interfaceClass : interfaces) {
+            final FieldInfo field = interfaceClass.getField(name, descriptor);
+            if (field != null)
+                return field;
+        }
+
+        if (superclass != null)
+            return superclass.getField(name, descriptor);
         return null;
     }
 
@@ -209,6 +235,9 @@ public class ClassFile {
                 continue;
             return method;
         }
+
+        if (superclass != null)
+            return superclass.getMethod(name, descriptor);
         return null;
     }
 
@@ -228,16 +257,28 @@ public class ClassFile {
         return superclass;
     }
 
+    public boolean isAnnotation() {
+        return Modifier.ANNOTATION.eval(modifiers);
+    }
+
     public boolean isArray() {
         return false;
+    }
+
+    public boolean isEnum() {
+        return Modifier.ENUM.eval(modifiers);
+    }
+
+    public boolean isInterface() {
+        return Modifier.INTERFACE.eval(modifiers);
     }
 
     public boolean isPrimitive() {
         return false;
     }
 
-    public boolean isInterface() {
-        return Modifier.INTERFACE.eval(modifiers);
+    public boolean isSynthetic() {
+        return Modifier.SYNTHETIC.eval(modifiers);
     }
 
     public int newInstance() {

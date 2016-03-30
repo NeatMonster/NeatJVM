@@ -48,7 +48,10 @@ public class ClassLoader {
             return classFile;
 
         if (className.startsWith("[")) {
-            classFile = new ArrayClassFile(this, loadClass(className.substring(1)));
+            String arrayClassName = className.substring(1);
+            if (arrayClassName.startsWith("L"))
+                arrayClassName = arrayClassName.substring(1, arrayClassName.length() - 1);
+            classFile = new ArrayClassFile(this, loadClass(arrayClassName));
             namespace.put(className, classFile);
             return classFile;
         }

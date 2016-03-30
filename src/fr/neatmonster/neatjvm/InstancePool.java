@@ -9,14 +9,22 @@ import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 
 public class InstancePool {
-    private final Map<String, InstanceData>  strings;
-    private final Map<Integer, InstanceData> instances;
-    private int                              nextReference;
+    private final Map<Integer, InstanceData>   instances;
+    private int                                nextReference;
+
+    private final Map<String, InstanceData>    strings;
+
+    private final Map<ClassFile, InstanceData> classToJavaClass;
+    private final Map<InstanceData, ClassFile> javaClassToClass;
 
     public InstancePool() {
-        strings = new HashMap<>();
         instances = new HashMap<>();
         nextReference = 1;
+
+        strings = new HashMap<>();
+
+        classToJavaClass = new HashMap<>();
+        javaClassToClass = new HashMap<>();
     }
 
     public int addInstance(final InstanceData instance) {
@@ -51,12 +59,29 @@ public class InstancePool {
         stringInstance.put(valueField, ByteBuffer.allocate(4).putInt(arrayref).array());
 
         final FieldInfo offsetField = stringClass.getField("offset", "I");
-        stringInstance.put(offsetField, ByteBuffer.allocate(4).putInt(0).array());
+        if (offsetField != null)
+            stringInstance.put(offsetField, ByteBuffer.allocate(4).putInt(0).array());
 
         final FieldInfo countField = stringClass.getField("count", "I");
-        stringInstance.put(countField, ByteBuffer.allocate(4).putInt(string.length()).array());
+        if (countField != null)
+            stringInstance.put(countField, ByteBuffer.allocate(4).putInt(string.length()).array());
 
         strings.put(string, stringInstance);
         return stringref;
+    }
+
+    public InstanceData getJavaClass(final ClassFile classFile) {
+        InstanceData javaClass = classToJavaClass.get(classFile);
+        if (javaClass != null)
+            return javaClass;
+
+        javaClass = getInstance(VirtualMachine.getClassLoader().loadClass("java/lang/Class").newInstance());
+        classToJavaClass.put(classFile, javaClass);
+        javaClassToClass.put(javaClass, classFile);
+        return javaClass;
+    }
+
+    public ClassFile getClassFile(final InstanceData javaClass) {
+        return javaClassToClass.get(javaClass);
     }
 }

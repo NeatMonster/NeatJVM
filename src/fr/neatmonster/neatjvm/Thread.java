@@ -10,8 +10,10 @@ import fr.neatmonster.neatjvm.format.ConstantInfo;
 import fr.neatmonster.neatjvm.format.FieldInfo;
 import fr.neatmonster.neatjvm.format.FieldType.BaseType;
 import fr.neatmonster.neatjvm.format.MethodInfo;
+import fr.neatmonster.neatjvm.format.Modifier;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute.ExceptionHandler;
+import fr.neatmonster.neatjvm.format.constant.ClassConstant;
 import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
 import fr.neatmonster.neatjvm.format.constant.FloatConstant;
 import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
@@ -160,9 +162,9 @@ public class Thread {
             }
             case 0x11: // sipush
             {
-                final byte byte1 = code[pc++];
-                final byte byte2 = code[pc++];
-                final int value = byte1 << 8 | byte2;
+                final int byte1 = code[pc++] & 0xff;
+                final int byte2 = code[pc++] & 0xff;
+                final short value = (short) (byte1 << 8 | byte2);
                 frame.pushInt(value);
                 break;
             }
@@ -176,14 +178,25 @@ public class Thread {
                     frame.pushInt(value);
                 }
 
-                if (constant instanceof FloatConstant) {
+                else if (constant instanceof FloatConstant) {
                     final float value = ((FloatConstant) constant).resolve();
                     frame.pushFloat(value);
                 }
 
-                if (constant instanceof StringConstant) {
+                else if (constant instanceof StringConstant) {
                     final int value = ((StringConstant) constant).resolve();
                     frame.pushReference(value);
+                }
+
+                else if (constant instanceof ClassConstant) {
+                    final int value = instancePool.getJavaClass(((ClassConstant) constant).resolve()).getReference();
+                    frame.pushReference(value);
+                }
+
+                else {
+                    System.err.println(
+                            "Unrecognized constant w/ " + constant.getClass().getSimpleName() + " when loading!");
+                    System.exit(0);
                 }
 
                 // TODO Add support for Classes, MethodTypes and MethodHandles
@@ -191,8 +204,8 @@ public class Thread {
             }
             case 0x13: // ldc_w
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final ConstantInfo constant = classFile.getConstants()[index - 1];
 
@@ -201,23 +214,34 @@ public class Thread {
                     frame.pushInt(value);
                 }
 
-                if (constant instanceof FloatConstant) {
+                else if (constant instanceof FloatConstant) {
                     final float value = ((FloatConstant) constant).resolve();
                     frame.pushFloat(value);
                 }
 
-                if (constant instanceof StringConstant) {
+                else if (constant instanceof StringConstant) {
                     final int value = ((StringConstant) constant).resolve();
                     frame.pushReference(value);
+                }
+
+                else if (constant instanceof ClassConstant) {
+                    final int value = instancePool.getJavaClass(((ClassConstant) constant).resolve()).getReference();
+                    frame.pushReference(value);
+                }
+
+                else {
+                    System.err.println(
+                            "Unrecognized constant w/ " + constant.getClass().getSimpleName() + " when loading!");
+                    System.exit(0);
                 }
 
                 // TODO Add support for Classes, MethodTypes and MethodHandles
                 break;
             }
-            case 0x14: // ldc
+            case 0x14: // ldc2_w
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final ConstantInfo constant = classFile.getConstants()[index - 1];
 
@@ -226,7 +250,7 @@ public class Thread {
                     frame.pushLong(value);
                 }
 
-                if (constant instanceof DoubleConstant) {
+                else if (constant instanceof DoubleConstant) {
                     final double value = ((DoubleConstant) constant).resolve();
                     frame.pushDouble(value);
                 }
@@ -1544,10 +1568,9 @@ public class Thread {
              */
             case 0xb2: // getstatic
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
-
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
 
                 final ClassData instance = field.getClassFile().getInstance();
@@ -1561,8 +1584,8 @@ public class Thread {
             }
             case 0xb3: // putstatic
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
 
@@ -1577,8 +1600,8 @@ public class Thread {
             }
             case 0xb4: // getfield
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
 
@@ -1599,8 +1622,8 @@ public class Thread {
             }
             case 0xb5: // putfield
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final FieldInfo field = ConstantInfo.getFieldref(classFile, index);
 
@@ -1621,8 +1644,8 @@ public class Thread {
             }
             case 0xb6: // invokevirtual
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 MethodInfo method = ConstantInfo.getMethodref(classFile, index);
                 final int paramsSize = MethodInfo.getParametersSize(method);
@@ -1634,16 +1657,32 @@ public class Thread {
                     break;
                 }
 
-                int offset = -1;
-                for (int i = 0; i < method.getClassFile().getMethods().length; ++i)
-                    if (method.getClassFile().getMethods()[i] == method) {
-                        offset = i;
-                        break;
-                    }
-                method = instance.getClassFile().getMethods()[offset];
+                method = instance.getClassFile().getMethod(method.getName(), MethodInfo.getDescriptor(method));
 
                 // TODO Throw IllegalAccessError, AbstractMethodError,
                 // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
+
+                if (Modifier.NATIVE.eval(method.getModifiers())) {
+                    final ClassFile methodClass = method.getClassFile();
+
+                    if (methodClass.getName().equals("java/lang/Object"))
+                        if (method.getName().equals("getClass")) {
+                            frame.pushReference(instancePool.getJavaClass(instance.getClassFile()).getReference());
+                            break;
+                        }
+
+                    if (methodClass.getName().equals("java/lang/Class"))
+                        if (method.getName().equals("getComponentType")) {
+                            final ClassFile objectClass = instancePool.getClassFile(instance);
+                            final ClassFile arrayClass = ((ArrayClassFile) objectClass).getArrayClass();
+                            frame.pushReference(instancePool.getJavaClass(arrayClass).getReference());
+                            break;
+                        }
+
+                    System.err.println("Native virtual method " + method.getName() + " of class "
+                            + method.getClassFile().getName() + " is not implemented!");
+                    System.exit(0);
+                }
 
                 final CodeAttribute newCode = MethodInfo.getCode(method);
                 final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
@@ -1655,8 +1694,8 @@ public class Thread {
             }
             case 0xb7: // invokespecial
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final MethodInfo method = ConstantInfo.getMethodref(classFile, index);
                 final int paramsSize = MethodInfo.getParametersSize(method);
@@ -1671,6 +1710,12 @@ public class Thread {
                 // TODO Throw IllegalAccessError, AbstractMethodError,
                 // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
 
+                if (Modifier.NATIVE.eval(method.getModifiers())) {
+                    System.err.println("Native special method " + method.getName() + " of class "
+                            + method.getClassFile().getName() + " is not implemented!");
+                    System.exit(0);
+                }
+
                 final CodeAttribute newCode = MethodInfo.getCode(method);
                 final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
                 for (int i = paramsSize; i >= 0; --i)
@@ -1681,11 +1726,101 @@ public class Thread {
             }
             case 0xb8: // invokestatic
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final MethodInfo method = ConstantInfo.getMethodref(classFile, index);
                 final int paramsSize = MethodInfo.getParametersSize(method);
+
+                if (Modifier.NATIVE.eval(method.getModifiers())) {
+                    final ClassFile methodClass = method.getClassFile();
+
+                    if (methodClass.getName().equals("java/lang/Object"))
+                        if (method.getName().equals("registerNatives"))
+                            break;
+
+                    if (methodClass.getName().equals("java/lang/Class")) {
+                        if (method.getName().equals("registerNatives"))
+                            break;
+
+                        if (method.getName().equals("getPrimitiveClass")) {
+                            final int objectref = frame.popReference();
+                            final InstanceData instance = instancePool.getInstance(objectref);
+                            final ClassFile classFile = instance.getClassFile();
+
+                            final ByteBuffer buf = ByteBuffer.allocate(4);
+                            instance.get(classFile.getField("value", "[C"), buf.array());
+                            final int arrayref = buf.getInt();
+                            final ArrayInstanceData arrayInstance = (ArrayInstanceData) instancePool
+                                    .getInstance(arrayref);
+
+                            final char[] value = new char[arrayInstance.getLength()];
+                            for (int i = 0; i < value.length; ++i)
+                                value[i] = heapSpace.getChar(arrayInstance.dataStart + i * 2);
+                            final String name = new String(value);
+
+                            switch (name) {
+                                case "boolean":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("Z")).getReference());
+                                    break;
+                                case "char":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("C")).getReference());
+                                    break;
+                                case "float":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("F")).getReference());
+                                    break;
+                                case "double":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("D")).getReference());
+                                    break;
+                                case "byte":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("B")).getReference());
+                                    break;
+                                case "short":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("s")).getReference());
+                                    break;
+                                case "int":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("I")).getReference());
+                                    break;
+                                case "long":
+                                    frame.pushReference(
+                                            instancePool.getJavaClass(classLoader.loadClass("J")).getReference());
+                                    break;
+                                default:
+                                    System.err.println("Unknown primitive name " + name);
+                                    System.exit(0);
+                            }
+
+                            break;
+                        }
+
+                        if (method.getName().equals("desiredAssertionStatus0")) {
+                            frame.pushInt(0);
+                            break;
+                        }
+                    }
+
+                    if (methodClass.getName().equals("java/lang/reflect/Array"))
+                        if (method.getName().equals("newArray")) {
+                            final int arrayLength = frame.popInt();
+                            final int componentType = frame.popReference();
+                            final ClassFile arrayClass = instancePool
+                                    .getClassFile(instancePool.getInstance(componentType));
+                            frame.pushReference(((ArrayClassFile) classLoader.loadClass("[" + arrayClass.getName()))
+                                    .newInstance(arrayLength));
+                            break;
+                        }
+
+                    System.err.println("Native static method " + method.getName() + " of class "
+                            + method.getClassFile().getName() + " is not implemented!");
+                    System.exit(0);
+                }
 
                 final CodeAttribute newCode = MethodInfo.getCode(method);
                 final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
@@ -1697,10 +1832,10 @@ public class Thread {
             }
             case 0xb9: // invokeinterface
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
-                final int paramsSize = code[(pc += 2) - 1] & 0xff;
+                final int paramsSize = (code[(pc += 2) - 2] & 0xff) - 1;
 
                 final int objectref = frame.peekInt(paramsSize + 1);
                 final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
@@ -1713,6 +1848,11 @@ public class Thread {
                 // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
 
                 final MethodInfo method = ConstantInfo.getInterfaceMethodref(classFile, index, instance);
+                if (Modifier.NATIVE.eval(method.getModifiers())) {
+                    System.err.println("Native interface method " + method.getName() + " of class "
+                            + method.getClassFile().getName() + " is not implemented!");
+                    System.exit(0);
+                }
 
                 final CodeAttribute newCode = MethodInfo.getCode(method);
                 final StackFrame newFrame = pushFrame(newCode.getMaxStack(), newCode.getMaxLocals());
@@ -1724,8 +1864,8 @@ public class Thread {
             }
             case 0xbb: // new
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
 
                 final ClassFile resolvedClass = ConstantInfo.getClassFile(classFile, index);
@@ -1753,8 +1893,8 @@ public class Thread {
             case 0xbd: // anewarray
             {
 
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final ClassFile resolvedClass = ConstantInfo.getClassFile(classFile, index);
 
@@ -1795,8 +1935,8 @@ public class Thread {
             }
             case 0xc0: // checkcast
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final ClassFile resolvedClass = ConstantInfo.getClassFile(classFile, index);
 
@@ -1812,8 +1952,8 @@ public class Thread {
             }
             case 0xc1: // instanceof
             {
-                final byte indexbyte1 = code[pc++];
-                final byte indexbyte2 = code[pc++];
+                final int indexbyte1 = code[pc++] & 0xff;
+                final int indexbyte2 = code[pc++] & 0xff;
                 final int index = indexbyte1 << 8 | indexbyte2;
                 final ClassFile resolvedClass = ConstantInfo.getClassFile(classFile, index);
 

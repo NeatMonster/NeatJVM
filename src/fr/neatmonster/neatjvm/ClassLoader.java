@@ -39,7 +39,8 @@ public class ClassLoader {
         return namespace.get(className);
     }
 
-    public ClassFile loadClass(final String className) {
+    public ClassFile loadClass(String className) {
+        className = className.replaceAll("/", ".");
         if (parent != null)
             return parent.loadClass(className);
 
@@ -57,7 +58,8 @@ public class ClassLoader {
         }
 
         try {
-            final byte[] classBytes = Files.readAllBytes(new File(className + ".class").toPath());
+            final File file = new File(className.replaceAll("\\.", "/") + ".class");
+            final byte[] classBytes = Files.readAllBytes(file.toPath());
             return defineClass(className, ByteBuffer.wrap(classBytes));
         } catch (final IOException e) {
             e.printStackTrace(System.err);

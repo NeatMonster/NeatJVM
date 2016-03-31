@@ -1,5 +1,6 @@
 package fr.neatmonster.neatjvm;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,9 +87,10 @@ public class Thread {
     public void tick() {
         VirtualMachine.setCurrentThread(this);
 
-        final MemoryPool heapSpace = VirtualMachine.getHeapSpace();
         final ClassLoader classLoader = VirtualMachine.getClassLoader();
+        final MemoryPool heapSpace = VirtualMachine.getHeapSpace();
         final InstancePool instancePool = VirtualMachine.getInstancePool();
+        final NativeHandler nativeHandler = VirtualMachine.getNativeHandler();
 
         if (exception != null) {
             for (final ExceptionHandler handler : code.getExceptions()) {
@@ -355,13 +357,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -375,13 +377,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -395,13 +397,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -415,13 +417,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -435,13 +437,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -455,13 +457,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -475,13 +477,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -495,13 +497,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -604,13 +606,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -624,13 +626,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -644,13 +646,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -664,13 +666,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -684,13 +686,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -704,13 +706,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -724,13 +726,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -744,13 +746,13 @@ public class Thread {
 
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final ArrayInstanceData instance = (ArrayInstanceData) instancePool.getInstance(arrayref);
                 if (index < 0 || index >= instance.getLength()) {
-                    throwException(classLoader.loadClass("java/lang/ArrayIndexOutOfBoundsException"));
+                    throwException(classLoader.loadClass("java.lang.ArrayIndexOutOfBoundsException"));
                     break;
                 }
 
@@ -922,7 +924,7 @@ public class Thread {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
                 if (value2 == 0) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final int result = value1 / value2;
@@ -934,7 +936,7 @@ public class Thread {
                 final long value2 = frame.popLong();
                 final long value1 = frame.popLong();
                 if (value2 == 0L) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final long result = value1 / value2;
@@ -946,7 +948,7 @@ public class Thread {
                 final float value2 = frame.popFloat();
                 final float value1 = frame.popFloat();
                 if (value2 == 0f) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final float result = value1 / value2;
@@ -958,7 +960,7 @@ public class Thread {
                 final double value2 = frame.popDouble();
                 final double value1 = frame.popDouble();
                 if (value2 == 0.0) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final double result = value1 / value2;
@@ -970,7 +972,7 @@ public class Thread {
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
                 if (value2 == 0) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final int result = value1 % value2;
@@ -982,7 +984,7 @@ public class Thread {
                 final long value2 = frame.popLong();
                 final long value1 = frame.popLong();
                 if (value2 == 0L) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final long result = value1 % value2;
@@ -994,7 +996,7 @@ public class Thread {
                 final float value2 = frame.popFloat();
                 final float value1 = frame.popFloat();
                 if (value2 == 0f) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final float result = value1 % value2;
@@ -1006,7 +1008,7 @@ public class Thread {
                 final double value2 = frame.popDouble();
                 final double value1 = frame.popDouble();
                 if (value2 == 0.0) {
-                    throwException(classLoader.loadClass("java/lang/ArithmeticException"));
+                    throwException(classLoader.loadClass("java.lang.ArithmeticException"));
                     break;
                 }
                 final double result = value1 % value2;
@@ -1300,7 +1302,7 @@ public class Thread {
                 else if (value1 < value2)
                     frame.pushInt(-1);
                 else
-                    frame.pushInt(opcode == 0x96 ? 1 : -1);
+                    frame.pushInt(opcode == 0x98 ? 1 : -1);
                 break;
             }
             case 0x99: // ifeq
@@ -1623,7 +1625,7 @@ public class Thread {
 
                 final int objectref = frame.popReference();
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
                 final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
@@ -1650,7 +1652,7 @@ public class Thread {
 
                 final int objectref = frame.popReference();
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
                 final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
@@ -1668,7 +1670,7 @@ public class Thread {
 
                 final int objectref = frame.peekInt(paramsSize + 1);
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
                 final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
@@ -1685,25 +1687,21 @@ public class Thread {
                     frame.monitor = null;
 
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
-                    final ClassFile methodClass = method.getClassFile();
-
-                    if (methodClass.getName().equals("java/lang/Object"))
-                        if (method.getName().equals("getClass")) {
-                            frame.pushReference(instancePool.getJavaClass(instance.getClassFile()).getReference());
-                            break;
+                    try {
+                        final int[] values = nativeHandler.executeMethod(frame, method, instance);
+                        if (values == null) {
+                            System.err.println("Native virtual method " + method.getName() + " of class "
+                                    + method.getClassFile().getName() + " is not implemented!");
+                            System.exit(0);
                         }
 
-                    if (methodClass.getName().equals("java/lang/Class"))
-                        if (method.getName().equals("getComponentType")) {
-                            final ClassFile objectClass = instancePool.getClassFile(instance);
-                            final ClassFile arrayClass = ((ArrayClassFile) objectClass).getArrayClass();
-                            frame.pushReference(instancePool.getJavaClass(arrayClass).getReference());
-                            break;
-                        }
-
-                    System.err.println("Native virtual method " + method.getName() + " of class "
-                            + method.getClassFile().getName() + " is not implemented!");
-                    System.exit(0);
+                        for (final int value : values)
+                            frame.pushInt(value);
+                    } catch (final InvocationTargetException e) {
+                        final Throwable nativeException = e.getTargetException();
+                        throwException(classLoader.loadClass(nativeException.getClass().getName()));
+                    }
+                    break;
                 }
 
                 final CodeAttribute newCode = MethodInfo.getCode(method);
@@ -1724,7 +1722,7 @@ public class Thread {
 
                 final int objectref = frame.peekInt(paramsSize + 1);
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
                 final InstanceData instance = instancePool.getInstance(objectref);
@@ -1739,9 +1737,21 @@ public class Thread {
                     frame.monitor = null;
 
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
-                    System.err.println("Native special method " + method.getName() + " of class "
-                            + method.getClassFile().getName() + " is not implemented!");
-                    System.exit(0);
+                    try {
+                        final int[] values = nativeHandler.executeMethod(frame, method, instance);
+                        if (values == null) {
+                            System.err.println("Native special method " + method.getName() + " of class "
+                                    + method.getClassFile().getName() + " is not implemented!");
+                            System.exit(0);
+                        }
+
+                        for (final int value : values)
+                            frame.pushInt(value);
+                    } catch (final InvocationTargetException e) {
+                        final Throwable nativeException = e.getTargetException();
+                        throwException(classLoader.loadClass(nativeException.getClass().getName()));
+                    }
+                    break;
                 }
 
                 final CodeAttribute newCode = MethodInfo.getCode(method);
@@ -1760,94 +1770,28 @@ public class Thread {
                 final MethodInfo method = ConstantInfo.getMethodref(classFile, index);
                 final int paramsSize = MethodInfo.getParametersSize(method);
 
+                if (Modifier.SYNCHRONIZED.eval(method.getModifiers())) {
+                    frame.monitor = method.getClassFile().getInstance().getMonitor();
+                    frame.monitor.acquire(this);
+                } else
+                    frame.monitor = null;
+
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
-                    final ClassFile methodClass = method.getClassFile();
-
-                    if (methodClass.getName().equals("java/lang/Object"))
-                        if (method.getName().equals("registerNatives"))
-                            break;
-
-                    if (methodClass.getName().equals("java/lang/Class")) {
-                        if (method.getName().equals("registerNatives"))
-                            break;
-
-                        if (method.getName().equals("getPrimitiveClass")) {
-                            final int objectref = frame.popReference();
-                            final InstanceData instance = instancePool.getInstance(objectref);
-                            final ClassFile classFile = instance.getClassFile();
-
-                            final ByteBuffer buf = ByteBuffer.allocate(4);
-                            instance.get(classFile.getField("value", "[C"), buf.array());
-                            final int arrayref = buf.getInt();
-                            final ArrayInstanceData arrayInstance = (ArrayInstanceData) instancePool
-                                    .getInstance(arrayref);
-
-                            final char[] value = new char[arrayInstance.getLength()];
-                            for (int i = 0; i < value.length; ++i)
-                                value[i] = heapSpace.getChar(arrayInstance.dataStart + i * 2);
-                            final String name = new String(value);
-
-                            switch (name) {
-                                case "boolean":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("Z")).getReference());
-                                    break;
-                                case "char":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("C")).getReference());
-                                    break;
-                                case "float":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("F")).getReference());
-                                    break;
-                                case "double":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("D")).getReference());
-                                    break;
-                                case "byte":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("B")).getReference());
-                                    break;
-                                case "short":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("s")).getReference());
-                                    break;
-                                case "int":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("I")).getReference());
-                                    break;
-                                case "long":
-                                    frame.pushReference(
-                                            instancePool.getJavaClass(classLoader.loadClass("J")).getReference());
-                                    break;
-                                default:
-                                    System.err.println("Unknown primitive name " + name);
-                                    System.exit(0);
-                            }
-
-                            break;
+                    try {
+                        final int[] values = nativeHandler.executeMethod(frame, method, null);
+                        if (values == null) {
+                            System.err.println("Native static method " + method.getName() + " of class "
+                                    + method.getClassFile().getName() + " is not implemented!");
+                            System.exit(0);
                         }
 
-                        if (method.getName().equals("desiredAssertionStatus0")) {
-                            frame.pushInt(0);
-                            break;
-                        }
+                        for (final int value : values)
+                            frame.pushInt(value);
+                    } catch (final InvocationTargetException e) {
+                        final Throwable nativeException = e.getTargetException();
+                        throwException(classLoader.loadClass(nativeException.getClass().getName()));
                     }
-
-                    if (methodClass.getName().equals("java/lang/reflect/Array"))
-                        if (method.getName().equals("newArray")) {
-                            final int arrayLength = frame.popInt();
-                            final int componentType = frame.popReference();
-                            final ClassFile arrayClass = instancePool
-                                    .getClassFile(instancePool.getInstance(componentType));
-                            frame.pushReference(((ArrayClassFile) classLoader.loadClass("[" + arrayClass.getName()))
-                                    .newInstance(arrayLength));
-                            break;
-                        }
-
-                    System.err.println("Native static method " + method.getName() + " of class "
-                            + method.getClassFile().getName() + " is not implemented!");
-                    System.exit(0);
+                    break;
                 }
 
                 final CodeAttribute newCode = MethodInfo.getCode(method);
@@ -1867,7 +1811,7 @@ public class Thread {
 
                 final int objectref = frame.peekInt(paramsSize + 1);
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
                 final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
@@ -1878,15 +1822,27 @@ public class Thread {
                 // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
 
                 if (Modifier.SYNCHRONIZED.eval(method.getModifiers())) {
-                    frame.monitor = method.getClassFile().getInstance().getMonitor();
+                    frame.monitor = instance.getMonitor();
                     frame.monitor.acquire(this);
                 } else
                     frame.monitor = null;
 
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
-                    System.err.println("Native interface method " + method.getName() + " of class "
-                            + method.getClassFile().getName() + " is not implemented!");
-                    System.exit(0);
+                    try {
+                        final int[] values = nativeHandler.executeMethod(frame, method, instance);
+                        if (values == null) {
+                            System.err.println("Native interface method " + method.getName() + " of class "
+                                    + method.getClassFile().getName() + " is not implemented!");
+                            System.exit(0);
+                        }
+
+                        for (final int value : values)
+                            frame.pushInt(value);
+                    } catch (final InvocationTargetException e) {
+                        final Throwable nativeException = e.getTargetException();
+                        throwException(classLoader.loadClass(nativeException.getClass().getName()));
+                    }
+                    break;
                 }
 
                 final CodeAttribute newCode = MethodInfo.getCode(method);
@@ -1916,7 +1872,7 @@ public class Thread {
 
                 final int count = frame.popInt();
                 if (count < 0) {
-                    throwException(classLoader.loadClass("java/lang/NegativeArraySizeException"));
+                    throwException(classLoader.loadClass("java.lang.NegativeArraySizeException"));
                     break;
                 }
 
@@ -1935,7 +1891,7 @@ public class Thread {
 
                 final int count = frame.popInt();
                 if (count < 0) {
-                    throwException(classLoader.loadClass("java/lang/NegativeArraySizeException"));
+                    throwException(classLoader.loadClass("java.lang.NegativeArraySizeException"));
                     break;
                 }
 
@@ -1948,7 +1904,7 @@ public class Thread {
             {
                 final int arrayref = frame.popReference();
                 if (arrayref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
@@ -1961,7 +1917,7 @@ public class Thread {
             {
                 final int objectref = frame.popReference();
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
@@ -1982,7 +1938,7 @@ public class Thread {
                 final ClassFile instanceClass = instancePool.getInstance(objectref).getClassFile();
 
                 if (!instanceClass.isInstance(resolvedClass))
-                    throwException(classLoader.loadClass("java/lang/ClassCastException"));
+                    throwException(classLoader.loadClass("java.lang.ClassCastException"));
                 break;
             }
             case 0xc1: // instanceof
@@ -2004,7 +1960,7 @@ public class Thread {
             {
                 final int objectref = frame.popReference();
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
@@ -2016,13 +1972,13 @@ public class Thread {
             {
                 final int objectref = frame.popReference();
                 if (objectref == 0) {
-                    throwException(classLoader.loadClass("java/lang/NullPointerException"));
+                    throwException(classLoader.loadClass("java.lang.NullPointerException"));
                     break;
                 }
 
                 final InstanceData instance = instancePool.getInstance(objectref);
                 if (!instance.getMonitor().release(this))
-                    throwException(classLoader.loadClass("java/lang/IllegalMonitorStateException"));
+                    throwException(classLoader.loadClass("java.lang.IllegalMonitorStateException"));
                 break;
             }
             /*
@@ -2102,7 +2058,7 @@ public class Thread {
     private void releaseMonitor() {
         if (frame.monitor != null) {
             if (!frame.monitor.release(this))
-                throwException(VirtualMachine.getClassLoader().loadClass("java/lang/IllegalMonitorStateException"));
+                throwException(VirtualMachine.getClassLoader().loadClass("java.lang.IllegalMonitorStateException"));
             else
                 frame.monitor = null;
         }

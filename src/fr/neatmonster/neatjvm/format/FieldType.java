@@ -48,7 +48,7 @@ public interface FieldType {
         private final byte[] defaultValue;
 
         public ObjectType(final String className) {
-            this.className = className;
+            this.className = className.replace("/", ".");
             defaultValue = new byte[4];
         }
 

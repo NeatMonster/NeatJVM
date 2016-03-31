@@ -31,7 +31,7 @@ public class StackFrame {
     }
 
     public void pushFloat(final float value) {
-        pushInt(Float.floatToIntBits(value));
+        pushInt(Float.floatToRawIntBits(value));
     }
 
     public void pushDouble(final double value) {
@@ -80,7 +80,7 @@ public class StackFrame {
     }
 
     public void storeFloat(final int index, final float value) {
-        storeInt(index, Float.floatToIntBits(value));
+        storeInt(index, Float.floatToRawIntBits(value));
     }
 
     public void storeDouble(final int index, final double value) {

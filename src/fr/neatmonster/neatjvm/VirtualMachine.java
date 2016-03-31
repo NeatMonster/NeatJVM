@@ -36,6 +36,10 @@ public class VirtualMachine {
         return instance.threadPool;
     }
 
+    public static NativeHandler getNativeHandler() {
+        return instance.nativeHandler;
+    }
+
     public static Thread getCurrentThread() {
         return instance.currentThread;
     }
@@ -52,6 +56,8 @@ public class VirtualMachine {
     private final InstancePool      handlePool;
     private final ThreadPool        threadPool;
 
+    private final NativeHandler     nativeHandler;
+
     private Thread                  currentThread;
 
     public VirtualMachine() {
@@ -66,12 +72,15 @@ public class VirtualMachine {
         handlePool = new InstancePool();
         threadPool = new ThreadPool();
 
+        nativeHandler = new NativeHandler();
+        nativeHandler.registerNatives();
+
         currentThread = null;
     }
 
     public void start(final String className) {
         final ClassFile mainClass = instance.classLoader.loadClass(className);
-        final MethodInfo mainMethod = mainClass.getMethod("main", "([Ljava/lang/String;)V");
+        final MethodInfo mainMethod = mainClass.getMethod("main", "([Ljava.lang.String;)V");
         startThread(MethodInfo.getCode(mainMethod.resolve()));
         while (true) {
             final Thread thread = instance.threadPool.getNextThread();

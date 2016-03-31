@@ -45,7 +45,7 @@ public class InstancePool {
         final ClassLoader classLoader = VirtualMachine.getClassLoader();
         final MemoryPool heapSpace = VirtualMachine.getHeapSpace();
 
-        final ClassFile stringClass = classLoader.loadClass("java/lang/String");
+        final ClassFile stringClass = classLoader.loadClass("java.lang.String");
         final int stringref = stringClass.newInstance();
         stringInstance = getInstance(stringref);
 
@@ -75,7 +75,7 @@ public class InstancePool {
         if (javaClass != null)
             return javaClass;
 
-        javaClass = getInstance(VirtualMachine.getClassLoader().loadClass("java/lang/Class").newInstance());
+        javaClass = getInstance(VirtualMachine.getClassLoader().loadClass("java.lang.Class").newInstance());
         classToJavaClass.put(classFile, javaClass);
         javaClassToClass.put(javaClass, classFile);
         return javaClass;

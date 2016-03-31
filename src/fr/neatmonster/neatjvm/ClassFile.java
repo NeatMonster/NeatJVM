@@ -90,9 +90,9 @@ public class ClassFile {
             instance = null;
             constants = new ConstantInfo[0];
             modifiers = 0x411;
-            superclass = loader.loadClass("java/lang/Object");
-            interfaces = new ClassFile[] { loader.loadClass("java/lang/Cloneable"),
-                    loader.loadClass("java/io/Serializable") };
+            superclass = loader.loadClass("java.lang.Object");
+            interfaces = new ClassFile[] { loader.loadClass("java.lang.Cloneable"),
+                    loader.loadClass("java.io.Serializable") };
             fields = new FieldInfo[0];
             methods = new MethodInfo[0];
             attributes = new AttributeInfo[0];
@@ -192,7 +192,8 @@ public class ClassFile {
         return constants;
     }
 
-    public FieldInfo getField(final String name, final String descriptor) {
+    public FieldInfo getField(final String name, String descriptor) {
+        descriptor = descriptor.replaceAll("/", ".");
         for (final FieldInfo field : fields) {
             field.resolve();
             if (!field.getName().equals(name))
@@ -221,7 +222,8 @@ public class ClassFile {
         return interfaces;
     }
 
-    public MethodInfo getMethod(final String name, final String descriptor) {
+    public MethodInfo getMethod(final String name, String descriptor) {
+        descriptor = descriptor.replaceAll("/", ".");
         for (final MethodInfo method : methods) {
             method.resolve();
             if (!method.getName().equals(name))
@@ -285,9 +287,7 @@ public class ClassFile {
     }
 
     public boolean extendsClass(final ClassFile classFile) {
-        if (equals(classFile))
-            return true;
-        return superclass != null && superclass.extendsClass(classFile);
+        return equals(classFile) || superclass != null && superclass.extendsClass(classFile);
     }
 
     public boolean implementsClass(final ClassFile classFile) {
@@ -314,17 +314,17 @@ public class ClassFile {
                     return thisPrimArr && classPrimArr;
             } else {
                 if (classFile.isInterface())
-                    return classFile.name.equals("java/lang/Cloneable")
-                            || classFile.name.equals("java/io/Serializable");
+                    return classFile.name.equals("java.lang.Cloneable")
+                            || classFile.name.equals("java.io.Serializable");
                 else
-                    return classFile.name.equals("java/lang/Object");
+                    return classFile.name.equals("java.lang.Object");
             }
         } else {
             if (isInterface()) {
                 if (classFile.isInterface())
                     return extendsClass(classFile);
                 else
-                    return classFile.name.equals("java/lang/Object");
+                    return classFile.name.equals("java.lang.Object");
             } else {
                 if (classFile.isInterface())
                     return implementsClass(classFile);

@@ -3,7 +3,6 @@ package fr.neatmonster.neatjvm;
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
-import fr.neatmonster.neatjvm.Thread.ThreadPriority;
 import fr.neatmonster.neatjvm.Thread.ThreadState;
 import fr.neatmonster.neatjvm.format.AttributeInfo;
 import fr.neatmonster.neatjvm.format.ConstantInfo;
@@ -170,17 +169,13 @@ public class ClassFile {
     }
 
     public void initialize() {
-        final MethodInfo cinit = getMethod("<clinit>", "()V");
-        if (cinit == null)
+        final MethodInfo clinit = getMethod("<clinit>", "()V");
+        if (clinit == null)
             return;
-        cinit.resolve();
+        clinit.resolve();
 
-        Thread thread = VirtualMachine.getCurrentThread();
-        if (thread == null)
-            thread = VirtualMachine.getInstance().startThread(MethodInfo.getCode(cinit), ThreadPriority.NORM_PRIORITY);
-        else
-            thread = VirtualMachine.getInstance().startThread(MethodInfo.getCode(cinit), thread.getPriority());
-
+        final Thread thread = new Thread(VirtualMachine.getThreadPool().getNextThreadId());
+        thread.start(MethodInfo.getCode(clinit));
         while (thread.getState() != ThreadState.TERMINATED)
             thread.tick();
     }

@@ -3,7 +3,6 @@ package fr.neatmonster.neatjvm;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.neatmonster.neatjvm.Thread.ThreadPriority;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
@@ -73,7 +72,7 @@ public class VirtualMachine {
     public void start(final String className) {
         final ClassFile mainClass = instance.classLoader.loadClass(className);
         final MethodInfo mainMethod = mainClass.getMethod("main", "([Ljava/lang/String;)V");
-        startThread(MethodInfo.getCode(mainMethod.resolve()), ThreadPriority.NORM_PRIORITY);
+        startThread(MethodInfo.getCode(mainMethod.resolve()));
         while (true) {
             final Thread thread = instance.threadPool.getNextThread();
             if (thread == null)
@@ -82,10 +81,10 @@ public class VirtualMachine {
         }
     }
 
-    public Thread startThread(final CodeAttribute code, final ThreadPriority priority) {
+    public Thread startThread(final CodeAttribute code) {
         final Thread thread = new Thread(instance.threadPool.getNextThreadId());
         thread.start(code);
-        instance.threadPool.addThread(thread, priority);
+        instance.threadPool.addThread(thread);
         return thread;
     }
 }

@@ -1,5 +1,6 @@
 package fr.neatmonster.neatjvm;
 
+import fr.neatmonster.neatjvm.ObjectData.Monitor;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
 public class StackFrame {
@@ -10,7 +11,8 @@ public class StackFrame {
     private final int        locals;
 
     int                      pc;
-    CodeAttribute            codeAttr;
+    CodeAttribute            code;
+    Monitor                  monitor;
 
     public StackFrame(final MemoryPool stackSpace, final short maxStack, final short maxLocals) {
         this.stackSpace = stackSpace;

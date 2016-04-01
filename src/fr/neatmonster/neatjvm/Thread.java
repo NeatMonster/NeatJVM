@@ -3,6 +3,7 @@ package fr.neatmonster.neatjvm;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
@@ -116,7 +117,10 @@ public class Thread {
         }
 
         frame.pc = pc;
-        final int opcode = codeBytes[pc++] & 0xff;
+        int opcode = codeBytes[pc++] & 0xff;
+        final boolean wide = opcode == 0xc4;
+        if (wide)
+            opcode = codeBytes[pc++] & 0xff;
         execution: switch (opcode) {
             /*
              * CONSTANTS
@@ -268,35 +272,45 @@ public class Thread {
              */
             case 0x15: // iload
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final int value = frame.getInt(index);
                 frame.pushInt(value);
                 break;
             }
             case 0x16: // lload
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final long value = frame.getLong(index);
                 frame.pushLong(value);
                 break;
             }
             case 0x17: // fload
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final float value = frame.getFloat(index);
                 frame.pushFloat(value);
                 break;
             }
             case 0x18: // dload
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final double value = frame.getDouble(index);
                 frame.pushDouble(value);
                 break;
             }
             case 0x19: // aload
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final int value = frame.getReference(index);
                 frame.pushReference(value);
                 break;
@@ -516,35 +530,45 @@ public class Thread {
              */
             case 0x36: // istore
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final int value = frame.popInt();
                 frame.storeInt(index, value);
                 break;
             }
             case 0x37: // lstore
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final long value = frame.popLong();
                 frame.storeLong(index, value);
                 break;
             }
             case 0x38: // fstore
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final float value = frame.popFloat();
                 frame.storeFloat(index, value);
                 break;
             }
             case 0x39: // dstore
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final double value = frame.popDouble();
                 frame.storeDouble(index, value);
                 break;
             }
             case 0x3a: // astore
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 final int value = frame.popReference();
                 frame.storeReference(index, value);
                 break;
@@ -1147,8 +1171,12 @@ public class Thread {
             }
             case 0x84: // iinc
             {
-                final int index = codeBytes[pc++] & 0xff;
-                final byte const_ = codeBytes[pc++];
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
+                int const_ = codeBytes[pc++];
+                if (wide)
+                    const_ = const_ << 8 | codeBytes[pc++];
                 frame.storeInt(index, frame.getInt(index) + const_);
                 break;
             }
@@ -1395,7 +1423,9 @@ public class Thread {
             }
             case 0xa9: // ret
             {
-                final int index = codeBytes[pc++] & 0xff;
+                int index = codeBytes[pc++] & 0xff;
+                if (wide)
+                    index = index << 8 | codeBytes[pc++] & 0xff;
                 pc = frame.getInt(index);
                 break;
             }
@@ -1984,6 +2014,55 @@ public class Thread {
             /*
              * EXTENDED
              */
+            case 0xc4: // wide
+                System.err.println("Found extra wide instruction, exiting...");
+                System.exit(0);
+                break;
+            case 0xc5: // multianewarray
+            {
+                final int indexbyte1 = codeBytes[pc++] & 0xff;
+                final int indexbyte2 = codeBytes[pc++] & 0xff;
+                final int index = indexbyte1 << 8 | indexbyte2;
+                final ClassFile resolvedClass = ConstantInfo.getClassFile(classFile, index);
+                final int dimensions = codeBytes[pc++] & 0xff;
+
+                final int[] counts = new int[dimensions];
+                Arrays.fill(counts, 1);
+                for (int i = 0; i < dimensions; ++i) {
+                    final int length = frame.popInt();
+                    if (length < 0) {
+                        throwException(classLoader.loadClass("java.lang.NegativeArraySizeException"));
+                        break execution;
+                    }
+
+                    for (int j = 0; j <= i; ++j)
+                        counts[j] *= length;
+                }
+
+                ClassFile arrayClass = resolvedClass;
+                final List<ArrayInstanceData> arrayInstances = new ArrayList<>();
+                for (int i = 0; i < dimensions; ++i) {
+                    arrayClass = classLoader.loadClass("[" + arrayClass.getName());
+                    int count = 1, length = counts[i];
+                    if (i < dimensions - 1) {
+                        count = counts[i + 1];
+                        length /= counts[i + 1];
+                    }
+                    for (int j = 0; j < count; ++j) {
+                        final ArrayInstanceData arrayInstance = (ArrayInstanceData) instancePool
+                                .getInstance(((ArrayClassFile) arrayClass).newInstance(length));
+                        if (i > 0)
+                            for (int k = 0; k < length; ++k)
+                                heapSpace.putReference(arrayInstance.dataStart + k * 4,
+                                        arrayInstances.remove(0).getReference());
+                        arrayInstances.add(arrayInstance);
+                    }
+                }
+
+                final int arrayref = arrayInstances.get(0).getReference();
+                frame.pushReference(arrayref);
+                break;
+            }
             case 0xc6: // ifnull
             {
                 final byte branchbyte1 = codeBytes[pc++];

@@ -66,8 +66,20 @@ public abstract class ConstantInfo implements Resolvable {
         return ((InterfaceMethodrefConstant) classFile.getConstants()[index - 1]).resolveOn(instance);
     }
 
-    public static String[] getNameAndType(final ClassFile classFile, final int index) {
+    public static NameAndTypeConstant getNameAndType(final ClassFile classFile, final int index) {
         return ((NameAndTypeConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static MethodHandleConstant getMethodHandle(final ClassFile classFile, final int index) {
+        return ((MethodHandleConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static MethodTypeConstant getMethodType(final ClassFile classFile, final int index) {
+        return ((MethodTypeConstant) classFile.getConstants()[index - 1]).resolve();
+    }
+
+    public static InvokeDynamicConstant getInvokeDynamic(final ClassFile classFile, final int index) {
+        return ((InvokeDynamicConstant) classFile.getConstants()[index - 1]).resolve();
     }
 
     protected final ClassFile classFile;

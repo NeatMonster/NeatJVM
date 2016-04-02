@@ -1883,6 +1883,12 @@ public class Thread {
                 contextSwitchUp(newFrame, newCode);
                 break;
             }
+            case 0xba: // invokedynamic
+            {
+                System.err.println("invokedynamic is not implemented!");
+                System.exit(0);
+                break;
+            }
             case 0xbb: // new
             {
                 final int indexbyte1 = codeBytes[pc++] & 0xff;

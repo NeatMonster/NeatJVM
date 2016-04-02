@@ -25,7 +25,7 @@ public class InterfaceMethodrefConstant extends ConstantInfo {
     }
 
     public MethodInfo resolveOn(final InstanceData instance) {
-        final String[] nameAndType = ConstantInfo.getNameAndType(classFile, nameAndTypeIndex);
-        return instance.getClassFile().getMethod(nameAndType[0], nameAndType[1]);
+        final NameAndTypeConstant nameAndType = ConstantInfo.getNameAndType(classFile, nameAndTypeIndex);
+        return instance.getClassFile().getMethod(nameAndType.getName(), nameAndType.getType());
     }
 }

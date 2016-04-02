@@ -25,7 +25,7 @@ public class MethodrefConstant extends ConstantInfo {
             return method;
 
         final ClassFile classFile = ConstantInfo.getClassFile(this.classFile, classIndex);
-        final String[] nameAndType = ConstantInfo.getNameAndType(this.classFile, nameAndTypeIndex);
-        return method = classFile.getMethod(nameAndType[0], nameAndType[1]);
+        final NameAndTypeConstant nameAndType = ConstantInfo.getNameAndType(this.classFile, nameAndTypeIndex);
+        return method = classFile.getMethod(nameAndType.getName(), nameAndType.getType());
     }
 }

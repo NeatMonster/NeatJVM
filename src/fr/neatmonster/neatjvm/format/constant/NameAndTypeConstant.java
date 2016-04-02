@@ -9,7 +9,8 @@ public class NameAndTypeConstant extends ConstantInfo {
     private final short nameIndex;
     private final short descriptorIndex;
 
-    private String[]    nameAndType;
+    private String      name;
+    private String      descriptor;
 
     public NameAndTypeConstant(final ClassFile classFile, final ByteBuffer buf) {
         super(classFile);
@@ -18,12 +19,21 @@ public class NameAndTypeConstant extends ConstantInfo {
         descriptorIndex = buf.getShort();
     }
 
-    @Override
-    public String[] resolve() {
-        if (nameAndType != null)
-            return nameAndType;
+    public String getName() {
+        return name;
+    }
 
-        return nameAndType = new String[] { ConstantInfo.getUtf8(classFile, nameIndex),
-                ConstantInfo.getUtf8(classFile, descriptorIndex) };
+    public String getType() {
+        return descriptor;
+    }
+
+    @Override
+    public NameAndTypeConstant resolve() {
+        if (name != null)
+            return this;
+
+        name = ConstantInfo.getUtf8(classFile, nameIndex);
+        descriptor = ConstantInfo.getUtf8(classFile, descriptorIndex);
+        return this;
     }
 }

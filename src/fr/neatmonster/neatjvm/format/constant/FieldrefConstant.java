@@ -25,7 +25,7 @@ public class FieldrefConstant extends ConstantInfo {
             return field;
 
         final ClassFile classFile = ConstantInfo.getClassFile(this.classFile, classIndex);
-        final String[] nameAndType = ConstantInfo.getNameAndType(classFile, nameAndTypeIndex);
-        return field = classFile.getField(nameAndType[0], nameAndType[1]);
+        final NameAndTypeConstant nameAndType = ConstantInfo.getNameAndType(classFile, nameAndTypeIndex);
+        return field = classFile.getField(nameAndType.getName(), nameAndType.getType());
     }
 }

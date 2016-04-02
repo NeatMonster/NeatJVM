@@ -16,7 +16,7 @@ public class CodeAttribute extends AttributeInfo {
 
         private ClassFile   catchClass;
 
-        public ExceptionHandler(final ByteBuffer buf) {
+        private ExceptionHandler(final ByteBuffer buf) {
             startPC = buf.getShort();
             endPC = buf.getShort();
             handlerPC = buf.getShort();

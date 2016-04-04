@@ -66,6 +66,10 @@ public abstract class ObjectData {
         return classFile;
     }
 
+    public int getAddress() {
+        return dataStart;
+    }
+
     public Monitor getMonitor() {
         return monitor;
     }

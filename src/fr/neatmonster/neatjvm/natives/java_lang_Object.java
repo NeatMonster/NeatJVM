@@ -25,7 +25,7 @@ public class java_lang_Object {
         instance.notifyAll(VirtualMachine.getCurrentThread());
     }
 
-    public static void wait(final InstanceData instance, final long arg0) {
+    public static void wait(final InstanceData instance, final long timeout) {
         instance.wait(VirtualMachine.getCurrentThread());
     }
 }

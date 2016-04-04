@@ -4,11 +4,11 @@ import fr.neatmonster.neatjvm.ClassData;
 
 public class java_lang_Float {
 
-    public static int floatToRawIntBits(final ClassData instance, final float arg0) {
-        throw new UnsupportedOperationException();
+    public static int floatToRawIntBits(final ClassData instance, final float value) {
+        return Float.floatToRawIntBits(value);
     }
 
-    public static float intBitsToFloat(final ClassData instance, final int arg0) {
-        throw new UnsupportedOperationException();
+    public static float intBitsToFloat(final ClassData instance, final int bits) {
+        return Float.intBitsToFloat(bits);
     }
 }

@@ -1,5 +1,7 @@
 package fr.neatmonster.neatjvm.natives;
 
+import java.nio.ByteBuffer;
+
 import fr.neatmonster.neatjvm.ClassData;
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
@@ -8,6 +10,7 @@ import fr.neatmonster.neatjvm.InstanceData;
 import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
 import fr.neatmonster.neatjvm.MemoryPool;
 import fr.neatmonster.neatjvm.VirtualMachine;
+import fr.neatmonster.neatjvm.format.FieldInfo;
 
 public class java_lang_System {
 
@@ -88,14 +91,17 @@ public class java_lang_System {
     }
 
     public static void setErr0(final ClassData instance, final InstanceData err) {
-        throw new UnsupportedOperationException();
+        final FieldInfo field = instance.getClassFile().getField("err", "java.io.PrintStream");
+        instance.put(field, ByteBuffer.allocate(4).putInt(err.getReference()).array());
     }
 
     public static void setIn0(final ClassData instance, final InstanceData in) {
-        throw new UnsupportedOperationException();
+        final FieldInfo field = instance.getClassFile().getField("in", "java.io.InputStream");
+        instance.put(field, ByteBuffer.allocate(4).putInt(in.getReference()).array());
     }
 
     public static void setOut0(final ClassData instance, final InstanceData out) {
-        throw new UnsupportedOperationException();
+        final FieldInfo field = instance.getClassFile().getField("out", "java.io.PrintStream");
+        instance.put(field, ByteBuffer.allocate(4).putInt(out.getReference()).array());
     }
 }

@@ -14,8 +14,10 @@ import fr.neatmonster.neatjvm.natives.java_lang_ClassLoader;
 import fr.neatmonster.neatjvm.natives.java_lang_Compiler;
 import fr.neatmonster.neatjvm.natives.java_lang_Double;
 import fr.neatmonster.neatjvm.natives.java_lang_Float;
+import fr.neatmonster.neatjvm.natives.java_lang_NativeLibrary;
 import fr.neatmonster.neatjvm.natives.java_lang_Object;
 import fr.neatmonster.neatjvm.natives.java_lang_Package;
+import fr.neatmonster.neatjvm.natives.java_lang_ProcessEnvironment;
 import fr.neatmonster.neatjvm.natives.java_lang_Runtime;
 import fr.neatmonster.neatjvm.natives.java_lang_SecurityManager;
 import fr.neatmonster.neatjvm.natives.java_lang_Shutdown;
@@ -24,7 +26,7 @@ import fr.neatmonster.neatjvm.natives.java_lang_String;
 import fr.neatmonster.neatjvm.natives.java_lang_System;
 import fr.neatmonster.neatjvm.natives.java_lang_Thread;
 import fr.neatmonster.neatjvm.natives.java_lang_Throwable;
-import fr.neatmonster.neatjvm.natives.java_lang_invoke_LambdaForm;
+import fr.neatmonster.neatjvm.natives.java_lang_UNIXProcess;
 import fr.neatmonster.neatjvm.natives.java_lang_invoke_MethodHandle;
 import fr.neatmonster.neatjvm.natives.java_lang_invoke_MethodHandleNatives;
 import fr.neatmonster.neatjvm.natives.java_lang_reflect_Array;
@@ -41,12 +43,20 @@ public class NativeHandler {
 
     public void registerNatives() {
         NATIVES.put("java.lang.Class", java_lang_Class.class);
+        NATIVES.put("java.lang.NativeLibrary", java_lang_NativeLibrary.class);
         NATIVES.put("java.lang.ClassLoader", java_lang_ClassLoader.class);
         NATIVES.put("java.lang.Compiler", java_lang_Compiler.class);
         NATIVES.put("java.lang.Double", java_lang_Double.class);
         NATIVES.put("java.lang.Float", java_lang_Float.class);
+        NATIVES.put("java.lang.invoke.MethodHandle", java_lang_invoke_MethodHandle.class);
+        NATIVES.put("java.lang.invoke.MethodHandleNatives", java_lang_invoke_MethodHandleNatives.class);
         NATIVES.put("java.lang.Object", java_lang_Object.class);
         NATIVES.put("java.lang.Package", java_lang_Package.class);
+        NATIVES.put("java.lang.ProcessEnvironment", java_lang_ProcessEnvironment.class);
+        NATIVES.put("java.lang.reflect.Array", java_lang_reflect_Array.class);
+        NATIVES.put("java.lang.reflect.Executable", java_lang_reflect_Executable.class);
+        NATIVES.put("java.lang.reflect.Field", java_lang_reflect_Field.class);
+        NATIVES.put("java.lang.reflect.Proxy", java_lang_reflect_Proxy.class);
         NATIVES.put("java.lang.Runtime", java_lang_Runtime.class);
         NATIVES.put("java.lang.SecurityManager", java_lang_SecurityManager.class);
         NATIVES.put("java.lang.Shutdown", java_lang_Shutdown.class);
@@ -55,17 +65,14 @@ public class NativeHandler {
         NATIVES.put("java.lang.System", java_lang_System.class);
         NATIVES.put("java.lang.Thread", java_lang_Thread.class);
         NATIVES.put("java.lang.Throwable", java_lang_Throwable.class);
-        NATIVES.put("java.lang.invoke.LambdaForm", java_lang_invoke_LambdaForm.class);
-        NATIVES.put("java.lang.invoke.MethodHandle", java_lang_invoke_MethodHandle.class);
-        NATIVES.put("java.lang.invoke.MethodHandleNatives", java_lang_invoke_MethodHandleNatives.class);
-        NATIVES.put("java.lang.reflect.Array", java_lang_reflect_Array.class);
-        NATIVES.put("java.lang.reflect.Executable", java_lang_reflect_Executable.class);
-        NATIVES.put("java.lang.reflect.Field", java_lang_reflect_Field.class);
-        NATIVES.put("java.lang.reflect.Proxy", java_lang_reflect_Proxy.class);
+        NATIVES.put("java.lang.UNIXProcess", java_lang_UNIXProcess.class);
     }
 
     public int[] executeMethod(final StackFrame frame, final MethodInfo method, final InstanceData instance)
             throws InvocationTargetException {
+        if (method.getName().equals("registerNatives"))
+            return new int[0];
+
         final InstancePool instancePool = VirtualMachine.getInstancePool();
 
         final String className = method.getClassFile().getName();

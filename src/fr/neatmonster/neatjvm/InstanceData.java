@@ -1,9 +1,12 @@
 package fr.neatmonster.neatjvm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
 import fr.neatmonster.neatjvm.ClassFile.PrimitiveClassFile;
@@ -35,12 +38,16 @@ public class InstanceData extends ObjectData {
         }
     }
 
+    private static final Random           HASH_CODE = new Random();
+
     private final Map<FieldInfo, Integer> offsets;
     private final int                     reference;
+    private final int                     hashCode;
 
     public InstanceData(final ClassFile classFile) {
         super(classFile);
         reference = VirtualMachine.getInstancePool().addInstance(this);
+        hashCode = HASH_CODE.nextInt();
 
         if (classFile instanceof ArrayClassFile) {
             offsets = null;
@@ -49,7 +56,16 @@ public class InstanceData extends ObjectData {
 
         offsets = new HashMap<>();
 
-        final List<FieldInfo> fields = getFields(classFile, false);
+        final List<FieldInfo> fields = new ArrayList<>();
+        fields.addAll(Arrays.asList(classFile.getFields()));
+        final Iterator<FieldInfo> it = fields.iterator();
+        while (it.hasNext()) {
+            final FieldInfo field = it.next();
+            if (Modifier.STATIC.eval(field.getModifiers())
+                    || Modifier.PRIVATE.eval(field.getModifiers()) && !field.getClassFile().equals(classFile))
+                it.remove();
+        }
+
         if (fields.isEmpty())
             return;
 
@@ -73,6 +89,10 @@ public class InstanceData extends ObjectData {
         return reference;
     }
 
+    public int getHashCode() {
+        return hashCode;
+    }
+
     @Override
     public void get(final FieldInfo field, final byte[] value) {
         VirtualMachine.getHeapSpace().get(dataStart + offsets.get(field), value, 0, field.getType().getSize());
@@ -81,23 +101,5 @@ public class InstanceData extends ObjectData {
     @Override
     public void put(final FieldInfo field, final byte[] value) {
         VirtualMachine.getHeapSpace().put(dataStart + offsets.get(field), value, 0, field.getType().getSize());
-    }
-
-    private static List<FieldInfo> getFields(final ClassFile classFile, final boolean isSuper) {
-        final List<FieldInfo> fields = new ArrayList<>();
-
-        if (classFile.getSuperclass() != null)
-            fields.addAll(getFields(classFile.getSuperclass(), true));
-
-        for (final FieldInfo field : classFile.getFields()) {
-            field.resolve();
-            if (Modifier.STATIC.eval(field.getModifiers()))
-                continue;
-            if (isSuper && Modifier.PRIVATE.eval(field.getModifiers()))
-                continue;
-            fields.add(field);
-        }
-
-        return fields;
     }
 }

@@ -55,14 +55,14 @@ public class InstancePool {
         for (int index = 0; index < string.length(); ++index)
             heapSpace.putChar(arrayInstance.dataStart + index * 2, string.charAt(index));
 
-        final FieldInfo valueField = stringClass.getField("value", "[C");
+        final FieldInfo valueField = stringClass.getDeclaredField("value", "[C");
         stringInstance.put(valueField, ByteBuffer.allocate(4).putInt(arrayref).array());
 
-        final FieldInfo offsetField = stringClass.getField("offset", "I");
+        final FieldInfo offsetField = stringClass.getDeclaredField("offset", "I");
         if (offsetField != null)
             stringInstance.put(offsetField, ByteBuffer.allocate(4).putInt(0).array());
 
-        final FieldInfo countField = stringClass.getField("count", "I");
+        final FieldInfo countField = stringClass.getDeclaredField("count", "I");
         if (countField != null)
             stringInstance.put(countField, ByteBuffer.allocate(4).putInt(string.length()).array());
 

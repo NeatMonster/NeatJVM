@@ -13,7 +13,7 @@ public class java_lang_Runtime {
         throw new UnsupportedOperationException();
     }
 
-    public static long totalMemory(final InstanceData instance) {
+    public static void gc(final InstanceData instance) {
         throw new UnsupportedOperationException();
     }
 
@@ -21,19 +21,19 @@ public class java_lang_Runtime {
         throw new UnsupportedOperationException();
     }
 
-    public static void gc(final InstanceData instance) {
-        throw new UnsupportedOperationException();
-    }
-
     public static void runFinalization0(final ClassData instance) {
         throw new UnsupportedOperationException();
     }
 
-    public static void traceInstructions(final InstanceData instance, final boolean on) {
+    public static long totalMemory(final InstanceData instance) {
         throw new UnsupportedOperationException();
     }
 
-    public static void traceMethodCalls(final InstanceData instance, final boolean on) {
+    public static void traceInstructions(final InstanceData instance, final boolean arg0) {
+        throw new UnsupportedOperationException();
+    }
+
+    public static void traceMethodCalls(final InstanceData instance, final boolean arg0) {
         throw new UnsupportedOperationException();
     }
 }

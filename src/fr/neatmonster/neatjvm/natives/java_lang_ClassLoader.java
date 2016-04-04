@@ -5,49 +5,34 @@ import fr.neatmonster.neatjvm.InstanceData;
 
 public class java_lang_ClassLoader {
 
-    public static void registerNatives(final ClassData instance) {
-    }
-
-    public static InstanceData defineClass0(final InstanceData instance, final InstanceData name, final InstanceData b,
-            final int off, final int len, final InstanceData pd) {
+    public static InstanceData defineClass0(final InstanceData instance, final InstanceData arg0,
+            final InstanceData arg1, final int arg2, final int arg3, final InstanceData arg4) {
         throw new UnsupportedOperationException();
     }
 
-    public static InstanceData defineClass1(final InstanceData instance, final InstanceData name, final InstanceData b,
-            final int off, final int len, final InstanceData pd, final InstanceData source) {
+    public static InstanceData defineClass1(final InstanceData instance, final InstanceData arg0,
+            final InstanceData arg1, final int arg2, final int arg3, final InstanceData arg4, final InstanceData arg5) {
         throw new UnsupportedOperationException();
     }
 
-    public static InstanceData defineClass2(final InstanceData instance, final InstanceData name, final InstanceData b,
-            final int off, final int len, final InstanceData pd, final InstanceData source) {
+    public static InstanceData defineClass2(final InstanceData instance, final InstanceData arg0,
+            final InstanceData arg1, final int arg2, final int arg3, final InstanceData arg4, final InstanceData arg5) {
         throw new UnsupportedOperationException();
     }
 
-    public static void resolveClass0(final InstanceData instance, final InstanceData c) {
+    public static InstanceData findBootstrapClass(final InstanceData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static InstanceData findBootstrapClass(final InstanceData instance, final InstanceData name) {
+    public static InstanceData findBuiltinLib(final ClassData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static InstanceData findLoadedClass0(final InstanceData instance, final InstanceData name) {
+    public static InstanceData findLoadedClass0(final InstanceData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static void load(final InstanceData instance, final InstanceData name, final boolean isBuiltin) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static long find(final InstanceData instance, final InstanceData name) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void unload(final InstanceData instance, final InstanceData name, final boolean isBuiltin) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static InstanceData findBuiltinLib(final ClassData instance, final InstanceData name) {
+    public static void resolveClass0(final InstanceData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 

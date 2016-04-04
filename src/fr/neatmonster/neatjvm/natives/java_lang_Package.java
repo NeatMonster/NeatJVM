@@ -5,7 +5,7 @@ import fr.neatmonster.neatjvm.InstanceData;
 
 public class java_lang_Package {
 
-    public static InstanceData getSystemPackage0(final ClassData instance, final InstanceData name) {
+    public static InstanceData getSystemPackage0(final ClassData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 

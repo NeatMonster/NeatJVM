@@ -33,10 +33,9 @@ public class MethodInfo implements Resolvable {
             try {
                 final String name = ConstantInfo.getUtf8(classFile, index);
                 final Class<? extends AttributeInfo> clazz = AttributeInfo.get(name);
-                if (clazz == null) {
-                    System.err.println("Unrecognized attribute info w/ name " + name);
+                if (clazz == null)
                     buf.position(buf.position() + length);
-                } else
+                else
                     attributes[i] = clazz.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(classFile, buf);
             } catch (final Exception e) {
                 e.printStackTrace(System.err);

@@ -80,7 +80,7 @@ public class VirtualMachine {
 
     public void start(final String className) {
         final ClassFile mainClass = instance.classLoader.loadClass(className);
-        final MethodInfo mainMethod = mainClass.getMethod("main", "([Ljava.lang.String;)V");
+        final MethodInfo mainMethod = mainClass.getDeclaredMethod("main", "([Ljava.lang.String;)V");
         startThread(MethodInfo.getCode(mainMethod.resolve()));
         while (true) {
             final Thread thread = instance.threadPool.getNextThread();

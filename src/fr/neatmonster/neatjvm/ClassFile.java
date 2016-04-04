@@ -1,6 +1,9 @@
 package fr.neatmonster.neatjvm;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
 import fr.neatmonster.neatjvm.Thread.ThreadState;
@@ -154,10 +157,9 @@ public class ClassFile {
             try {
                 final String name_ = ConstantInfo.getUtf8(this, index);
                 final Class<? extends AttributeInfo> clazz = AttributeInfo.get(name_);
-                if (clazz == null) {
-                    System.err.println("Unrecognized attribute info w/ name " + name_);
+                if (clazz == null)
                     buf.position(buf.position() + length);
-                } else
+                else
                     attributes[i] = clazz.getConstructor(ClassFile.class, ByteBuffer.class).newInstance(this, buf);
             } catch (final Exception e) {
                 e.printStackTrace(System.err);
@@ -169,7 +171,7 @@ public class ClassFile {
     }
 
     public void initialize() {
-        final MethodInfo clinit = getMethod("<clinit>", "()V");
+        final MethodInfo clinit = getDeclaredMethod("<clinit>", "()V");
         if (clinit == null)
             return;
         clinit.resolve();
@@ -192,8 +194,24 @@ public class ClassFile {
         return constants;
     }
 
+    public FieldInfo getDeclaredField(final String name, String descriptor) {
+        descriptor = descriptor.replaceAll("/", ".");
+
+        for (final FieldInfo field : fields) {
+            field.resolve();
+            if (!field.getName().equals(name))
+                continue;
+            if (!field.getType().toString().equals(descriptor))
+                continue;
+            return field;
+        }
+
+        return null;
+    }
+
     public FieldInfo getField(final String name, String descriptor) {
         descriptor = descriptor.replaceAll("/", ".");
+
         for (final FieldInfo field : fields) {
             field.resolve();
             if (!field.getName().equals(name))
@@ -211,19 +229,49 @@ public class ClassFile {
 
         if (superclass != null)
             return superclass.getField(name, descriptor);
+
         return null;
     }
 
-    public FieldInfo[] getFields() {
+    public FieldInfo[] getDeclaredFields() {
         return fields;
+    }
+
+    public FieldInfo[] getFields() {
+        final List<FieldInfo> fields = new ArrayList<>();
+        fields.addAll(Arrays.asList(this.fields));
+
+        for (final ClassFile interfaceClass : interfaces)
+            fields.addAll(Arrays.asList(interfaceClass.getFields()));
+
+        if (superclass != null)
+            fields.addAll(Arrays.asList(superclass.getFields()));
+
+        return fields.toArray(new FieldInfo[0]);
     }
 
     public ClassFile[] getInterfaces() {
         return interfaces;
     }
 
+    public MethodInfo getDeclaredMethod(final String name, String descriptor) {
+        descriptor = descriptor.replaceAll("/", ".");
+
+        for (final MethodInfo method : methods) {
+            method.resolve();
+            if (!method.getName().equals(name))
+                continue;
+            if (!MethodInfo.getDescriptor(method).equals(descriptor))
+                continue;
+            return method;
+        }
+
+        return null;
+    }
+
     public MethodInfo getMethod(final String name, String descriptor) {
         descriptor = descriptor.replaceAll("/", ".");
+
         for (final MethodInfo method : methods) {
             method.resolve();
             if (!method.getName().equals(name))
@@ -235,11 +283,22 @@ public class ClassFile {
 
         if (superclass != null)
             return superclass.getMethod(name, descriptor);
+
         return null;
     }
 
-    public MethodInfo[] getMethods() {
+    public MethodInfo[] getDeclaredMethods() {
         return methods;
+    }
+
+    public MethodInfo[] getMethods() {
+        final List<MethodInfo> methods = new ArrayList<>();
+        methods.addAll(Arrays.asList(this.methods));
+
+        if (superclass != null)
+            methods.addAll(Arrays.asList(superclass.getMethods()));
+
+        return methods.toArray(new MethodInfo[0]);
     }
 
     public short getModifiers() {

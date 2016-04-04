@@ -5,18 +5,8 @@ import fr.neatmonster.neatjvm.InstanceData;
 
 public class java_lang_System {
 
-    public static void registerNatives(final ClassData instance) {
-    }
-
-    public static void setIn0(final ClassData instance, final InstanceData in) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void setOut0(final ClassData instance, final InstanceData out) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void setErr0(final ClassData instance, final InstanceData err) {
+    public static void arraycopy(final ClassData instance, final InstanceData arg0, final int arg1,
+            final InstanceData arg2, final int arg3, final int arg4) {
         throw new UnsupportedOperationException();
     }
 
@@ -24,24 +14,31 @@ public class java_lang_System {
         throw new UnsupportedOperationException();
     }
 
+    public static int identityHashCode(final ClassData instance, final InstanceData arg0) {
+        throw new UnsupportedOperationException();
+    }
+
+    public static InstanceData initProperties(final ClassData instance, final InstanceData arg0) {
+        throw new UnsupportedOperationException();
+    }
+
+    public static InstanceData mapLibraryName(final ClassData instance, final InstanceData arg0) {
+        throw new UnsupportedOperationException();
+    }
+
     public static long nanoTime(final ClassData instance) {
         throw new UnsupportedOperationException();
     }
 
-    public static void arraycopy(final ClassData instance, final InstanceData src, final int srcPos,
-            final InstanceData dest, final int destPos, final int length) {
+    public static void setErr0(final ClassData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static int identityHashCode(final ClassData instance, final InstanceData x) {
+    public static void setIn0(final ClassData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static InstanceData initProperties(final ClassData instance, final InstanceData props) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static InstanceData mapLibraryName(final ClassData instance, final InstanceData libname) {
+    public static void setOut0(final ClassData instance, final InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 }

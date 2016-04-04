@@ -4,7 +4,7 @@ import fr.neatmonster.neatjvm.InstanceData;
 
 public class java_lang_Throwable {
 
-    public static InstanceData fillInStackTrace(final InstanceData instance, final int dummy) {
+    public static InstanceData fillInStackTrace(final InstanceData instance, final int arg0) {
         throw new UnsupportedOperationException();
     }
 
@@ -12,7 +12,7 @@ public class java_lang_Throwable {
         throw new UnsupportedOperationException();
     }
 
-    public static InstanceData getStackTraceElement(final InstanceData instance, final int index) {
+    public static InstanceData getStackTraceElement(final InstanceData instance, final int arg0) {
         throw new UnsupportedOperationException();
     }
 }

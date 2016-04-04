@@ -109,9 +109,10 @@ public class Thread {
 
             popFrame();
             final StackFrame prevFrame = getTopFrame();
-            if (prevFrame == null)
+            if (prevFrame == null) {
+                System.err.println("Thread " + id + " terminated w/ exception " + exception.getClassFile().getName());
                 state = ThreadState.TERMINATED;
-            else
+            } else
                 contextSwitchDown(prevFrame);
             return;
         }
@@ -1705,7 +1706,7 @@ public class Thread {
                 }
                 final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
 
-                method = instance.getClassFile().getMethod(method.getName(), MethodInfo.getDescriptor(method));
+                method = instance.getClassFile().getDeclaredMethod(method.getName(), MethodInfo.getDescriptor(method));
 
                 // TODO Throw IllegalAccessError, AbstractMethodError,
                 // UnsatisfiedLinkError, IncompatibleClassChangeError if needed

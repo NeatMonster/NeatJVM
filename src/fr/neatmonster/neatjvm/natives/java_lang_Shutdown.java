@@ -4,7 +4,7 @@ import fr.neatmonster.neatjvm.ClassData;
 
 public class java_lang_Shutdown {
 
-    public static void halt0(final ClassData instance, final int status) {
+    public static void halt0(final ClassData instance, final int arg0) {
         throw new UnsupportedOperationException();
     }
 

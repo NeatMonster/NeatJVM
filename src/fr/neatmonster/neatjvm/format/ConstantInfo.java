@@ -5,20 +5,7 @@ import java.util.Map;
 
 import fr.neatmonster.neatjvm.ClassFile;
 import fr.neatmonster.neatjvm.InstanceData;
-import fr.neatmonster.neatjvm.format.constant.ClassConstant;
-import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
-import fr.neatmonster.neatjvm.format.constant.FieldrefConstant;
-import fr.neatmonster.neatjvm.format.constant.FloatConstant;
-import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
-import fr.neatmonster.neatjvm.format.constant.InterfaceMethodrefConstant;
-import fr.neatmonster.neatjvm.format.constant.InvokeDynamicConstant;
-import fr.neatmonster.neatjvm.format.constant.LongConstant;
-import fr.neatmonster.neatjvm.format.constant.MethodHandleConstant;
-import fr.neatmonster.neatjvm.format.constant.MethodTypeConstant;
-import fr.neatmonster.neatjvm.format.constant.MethodrefConstant;
-import fr.neatmonster.neatjvm.format.constant.NameAndTypeConstant;
-import fr.neatmonster.neatjvm.format.constant.StringConstant;
-import fr.neatmonster.neatjvm.format.constant.Utf8Constant;
+import fr.neatmonster.neatjvm.format.constant.*;
 
 public abstract class ConstantInfo implements Resolvable {
     // @formatter:off

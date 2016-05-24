@@ -23,6 +23,6 @@ public class StringConstant extends ConstantInfo {
             return stringref;
 
         final String string = ConstantInfo.getUtf8(classFile, stringIndex);
-        return stringref = VirtualMachine.getInstancePool().addString(string);
+        return stringref = VirtualMachine.getInstancePool().addString(string).getReference();
     }
 }

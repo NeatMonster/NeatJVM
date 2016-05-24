@@ -1,12 +1,6 @@
 package fr.neatmonster.neatjvm;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
 import fr.neatmonster.neatjvm.ClassFile.PrimitiveClassFile;
@@ -46,11 +40,11 @@ public class InstanceData extends ObjectData {
 
     public InstanceData(final ClassFile classFile) {
         super(classFile);
-        reference = VirtualMachine.getInstancePool().addInstance(this);
         hashCode = HASH_CODE.nextInt();
 
         if (classFile instanceof ArrayClassFile) {
             offsets = null;
+            reference = VirtualMachine.getInstancePool().addInstance(this);
             return;
         }
 
@@ -61,28 +55,28 @@ public class InstanceData extends ObjectData {
         final Iterator<FieldInfo> it = fields.iterator();
         while (it.hasNext()) {
             final FieldInfo field = it.next();
-            if (Modifier.STATIC.eval(field.getModifiers())
-                    || Modifier.PRIVATE.eval(field.getModifiers()) && !field.getClassFile().equals(classFile))
+            if (Modifier.STATIC.eval(field.getModifiers()))
                 it.remove();
         }
 
-        if (fields.isEmpty())
-            return;
+        if (!fields.isEmpty()) {
+            int totalSize = 0;
+            for (final FieldInfo field : fields) {
+                offsets.put(field, totalSize);
+                totalSize += field.getType().getSize();
+            }
 
-        int totalSize = 0;
-        for (final FieldInfo field : fields) {
-            offsets.put(field, totalSize);
-            totalSize += field.getType().getSize();
+            final MemoryPool heap = VirtualMachine.getHeapSpace();
+            dataStart = heap.allocate(totalSize);
+
+            int currentAddr = dataStart;
+            for (final FieldInfo field : fields) {
+                heap.put(currentAddr, field.getType().getDefaultValue());
+                currentAddr += field.getType().getSize();
+            }
         }
 
-        final MemoryPool heap = VirtualMachine.getHeapSpace();
-        dataStart = heap.allocate(totalSize);
-
-        int currentAddr = dataStart;
-        for (final FieldInfo field : fields) {
-            heap.put(currentAddr, field.getType().getDefaultValue());
-            currentAddr += field.getType().getSize();
-        }
+        reference = VirtualMachine.getInstancePool().addInstance(this);
     }
 
     public int getReference() {

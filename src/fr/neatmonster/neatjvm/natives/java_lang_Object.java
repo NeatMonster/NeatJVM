@@ -10,7 +10,7 @@ public class java_lang_Object {
     }
 
     public static InstanceData getClass(final InstanceData instance) {
-        return VirtualMachine.getInstancePool().getJavaClass(instance.getClassFile());
+        return VirtualMachine.getInstancePool().addClassFile(instance.getClassFile());
     }
 
     public static int hashCode(final InstanceData instance) {

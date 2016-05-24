@@ -34,7 +34,7 @@ public class ThreadPool {
     }
 
     private final Queue<ThreadEntry> threads;
-    private int                      nextThreadId = 0;
+    private int                      nextThreadId = 1;
 
     public ThreadPool() {
         threads = new PriorityQueue<>();

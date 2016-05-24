@@ -1,16 +1,14 @@
 package fr.neatmonster.neatjvm.natives;
 
 import java.nio.ByteBuffer;
+import java.util.Properties;
 
-import fr.neatmonster.neatjvm.ClassData;
-import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.*;
 import fr.neatmonster.neatjvm.ClassFile.ArrayClassFile;
 import fr.neatmonster.neatjvm.ClassFile.PrimitiveClassFile;
-import fr.neatmonster.neatjvm.InstanceData;
 import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
-import fr.neatmonster.neatjvm.MemoryPool;
-import fr.neatmonster.neatjvm.VirtualMachine;
 import fr.neatmonster.neatjvm.format.FieldInfo;
+import fr.neatmonster.neatjvm.format.MethodInfo;
 
 public class java_lang_System {
 
@@ -75,14 +73,26 @@ public class java_lang_System {
     }
 
     public static int identityHashCode(final ClassData instance, final InstanceData obj) {
+        if (obj == null)
+            return 0;
         return obj.getHashCode();
     }
 
     public static InstanceData initProperties(final ClassData instance, final InstanceData props) {
-        throw new UnsupportedOperationException();
+        final InstancePool instancePool = VirtualMachine.getInstancePool();
+        final MethodInfo method = props.getClassFile().getDeclaredMethod("setProperty",
+                "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+
+        final Properties sysProps = System.getProperties();
+        for (final String propertyName : sysProps.stringPropertyNames()) {
+            final String propertyValue = sysProps.getProperty(propertyName);
+            method.invoke(props, instancePool.addString(propertyName), instancePool.addString(propertyValue));
+        }
+
+        return props;
     }
 
-    public static InstanceData mapLibraryName(final ClassData instance, final InstanceData libname) {
+    public static InstanceData mapLibraryName(ClassData instance, InstanceData libname) {
         throw new UnsupportedOperationException();
     }
 
@@ -91,17 +101,17 @@ public class java_lang_System {
     }
 
     public static void setErr0(final ClassData instance, final InstanceData err) {
-        final FieldInfo field = instance.getClassFile().getField("err", "java.io.PrintStream");
+        final FieldInfo field = instance.getClassFile().getField("err", "Ljava.io.PrintStream;");
         instance.put(field, ByteBuffer.allocate(4).putInt(err.getReference()).array());
     }
 
     public static void setIn0(final ClassData instance, final InstanceData in) {
-        final FieldInfo field = instance.getClassFile().getField("in", "java.io.InputStream");
+        final FieldInfo field = instance.getClassFile().getField("in", "Ljava.io.InputStream;");
         instance.put(field, ByteBuffer.allocate(4).putInt(in.getReference()).array());
     }
 
     public static void setOut0(final ClassData instance, final InstanceData out) {
-        final FieldInfo field = instance.getClassFile().getField("out", "java.io.PrintStream");
+        final FieldInfo field = instance.getClassFile().getField("out", "Ljava.io.PrintStream;");
         instance.put(field, ByteBuffer.allocate(4).putInt(out.getReference()).array());
     }
 }

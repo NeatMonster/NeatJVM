@@ -5,7 +5,7 @@ import fr.neatmonster.neatjvm.InstanceData;
 
 public class java_lang_ProcessEnvironment {
 
-    public static InstanceData environ(final ClassData instance) {
+    public static InstanceData environ(ClassData instance) {
         throw new UnsupportedOperationException();
     }
 }

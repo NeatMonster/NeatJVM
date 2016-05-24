@@ -5,21 +5,19 @@ import fr.neatmonster.neatjvm.InstanceData;
 
 public class java_lang_UNIXProcess {
 
-    public static void destroyProcess(final ClassData instance, final int arg0, final boolean arg1) {
+    public static void destroyProcess(ClassData instance, int arg0, boolean arg1) {
         throw new UnsupportedOperationException();
     }
 
-    public static int forkAndExec(final InstanceData instance, final int arg0, final InstanceData arg1,
-            final InstanceData arg2, final InstanceData arg3, final int arg4, final InstanceData arg5, final int arg6,
-            final InstanceData arg7, final InstanceData arg8, final boolean arg9) {
+    public static int forkAndExec(InstanceData instance, int arg0, InstanceData arg1, InstanceData arg2, InstanceData arg3, int arg4, InstanceData arg5, int arg6, InstanceData arg7, InstanceData arg8, boolean arg9) {
         throw new UnsupportedOperationException();
     }
 
-    public static void init(final ClassData instance) {
+    public static void init(ClassData instance) {
         throw new UnsupportedOperationException();
     }
 
-    public static int waitForProcessExit(final InstanceData instance, final int arg0) {
+    public static int waitForProcessExit(InstanceData instance, int arg0) {
         throw new UnsupportedOperationException();
     }
 }

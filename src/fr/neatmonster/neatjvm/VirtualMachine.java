@@ -3,12 +3,13 @@ package fr.neatmonster.neatjvm;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.neatmonster.neatjvm.ClassLoader.BootstrapClassLoader;
 import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 
 public class VirtualMachine {
-    public static final int       MAX_HEAP_SIZE  = 1024 * 1024;
-    public static final int       MAX_STACK_SIZE = 10 * 1024;
+    public static final int       MAX_HEAP_SIZE  = 256 * 1024 * 1024;
+    public static final int       MAX_STACK_SIZE = 1024 * 1024;
 
     private static VirtualMachine instance;
 
@@ -48,24 +49,24 @@ public class VirtualMachine {
         instance.currentThread = thread;
     }
 
-    private final MemoryPool        heapSpace;
+    private final MemoryPool           heapSpace;
 
-    private final ClassLoader       classLoader;
-    private final List<ClassLoader> classLoaders;
+    private final BootstrapClassLoader classLoader;
+    private final List<ClassLoader>    classLoaders;
 
-    private final InstancePool      handlePool;
-    private final ThreadPool        threadPool;
+    private final InstancePool         handlePool;
+    private final ThreadPool           threadPool;
 
-    private final NativeHandler     nativeHandler;
+    private final NativeHandler        nativeHandler;
 
-    private Thread                  currentThread;
+    private Thread                     currentThread;
 
     public VirtualMachine() {
         instance = this;
 
         heapSpace = new MemoryPool(MAX_HEAP_SIZE);
 
-        classLoader = new ClassLoader(null);
+        classLoader = new BootstrapClassLoader();
         classLoaders = new ArrayList<>();
         classLoaders.add(classLoader);
 
@@ -76,6 +77,7 @@ public class VirtualMachine {
         nativeHandler.registerNatives();
 
         currentThread = null;
+        classLoader.initialize();
     }
 
     public void start(final String className) {

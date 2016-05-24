@@ -3,6 +3,9 @@ package fr.neatmonster.neatjvm.format;
 import java.nio.ByteBuffer;
 
 import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.InstanceData;
+import fr.neatmonster.neatjvm.ObjectData;
+import fr.neatmonster.neatjvm.VirtualMachine;
 
 public class FieldInfo implements Resolvable {
     private final ClassFile       classFile;
@@ -76,6 +79,89 @@ public class FieldInfo implements Resolvable {
         }
 
         return this;
+    }
+
+    private ByteBuffer getHelper(final ObjectData instance) {
+        final ByteBuffer buf = ByteBuffer.allocate(type.getSize());
+        instance.get(this, buf.array());
+        return buf;
+    }
+
+    public InstanceData get(final ObjectData instance) {
+        final int objectref = getHelper(instance).getInt();
+        return VirtualMachine.getInstancePool().getInstance(objectref);
+    }
+
+    public boolean getBoolean(final ObjectData instance) {
+        return getHelper(instance).get() != 0;
+    }
+
+    public byte getByte(final ObjectData instance) {
+        return getHelper(instance).get();
+    }
+
+    public char getChar(final ObjectData instance) {
+        return getHelper(instance).getChar();
+    }
+
+    public double getDouble(final ObjectData instance) {
+        return getHelper(instance).getDouble();
+    }
+
+    public float getFloat(final ObjectData instance) {
+        return getHelper(instance).getFloat();
+    }
+
+    public int getInt(final ObjectData instance) {
+        return getHelper(instance).getInt();
+    }
+
+    public long getLong(final ObjectData instance) {
+        return getHelper(instance).getLong();
+    }
+
+    public short getShort(final ObjectData instance) {
+        return getHelper(instance).getShort();
+    }
+
+    public void set(final ObjectData instance, final InstanceData value) {
+        setHelper(instance, ByteBuffer.allocate(4).putInt(value.getReference()));
+    }
+
+    public void setBoolean(final ObjectData instance, final boolean value) {
+        setHelper(instance, ByteBuffer.allocate(1).put(value ? (byte) 1 : (byte) 0));
+    }
+
+    public void setByte(final ObjectData instance, final byte value) {
+        setHelper(instance, ByteBuffer.allocate(1).put(value));
+    }
+
+    public void setChar(final ObjectData instance, final char value) {
+        setHelper(instance, ByteBuffer.allocate(2).putChar(value));
+    }
+
+    public void setDouble(final ObjectData instance, final double value) {
+        setHelper(instance, ByteBuffer.allocate(8).putDouble(value));
+    }
+
+    public void setFloat(final ObjectData instance, final float value) {
+        setHelper(instance, ByteBuffer.allocate(4).putFloat(value));
+    }
+
+    public void setInt(final ObjectData instance, final int value) {
+        setHelper(instance, ByteBuffer.allocate(4).putInt(value));
+    }
+
+    public void setLong(final ObjectData instance, final long value) {
+        setHelper(instance, ByteBuffer.allocate(8).putLong(value));
+    }
+
+    public void setShort(final ObjectData instance, final short value) {
+        setHelper(instance, ByteBuffer.allocate(2).putShort(value));
+    }
+
+    private void setHelper(final ObjectData instance, final ByteBuffer buf) {
+        instance.put(this, buf.array());
     }
 
     public static int getParameterSize(final FieldInfo field) {

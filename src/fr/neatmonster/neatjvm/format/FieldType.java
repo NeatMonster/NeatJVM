@@ -2,6 +2,10 @@ package fr.neatmonster.neatjvm.format;
 
 import java.nio.ByteBuffer;
 
+import fr.neatmonster.neatjvm.ClassFile;
+import fr.neatmonster.neatjvm.InstanceData;
+import fr.neatmonster.neatjvm.VirtualMachine;
+
 public interface FieldType {
     enum BaseType implements FieldType {
         // @formatter:off
@@ -38,6 +42,12 @@ public interface FieldType {
         }
 
         @Override
+        public InstanceData getJavaClass() {
+            final ClassFile classFile = VirtualMachine.getClassLoader().loadClass(toString());
+            return VirtualMachine.getInstancePool().addClassFile(classFile);
+        }
+
+        @Override
         public String toString() {
             return Character.toString(terminal);
         }
@@ -64,6 +74,12 @@ public interface FieldType {
         @Override
         public byte[] getDefaultValue() {
             return defaultValue;
+        }
+
+        @Override
+        public InstanceData getJavaClass() {
+            final ClassFile classFile = VirtualMachine.getClassLoader().loadClass(className);
+            return VirtualMachine.getInstancePool().addClassFile(classFile);
         }
 
         @Override
@@ -96,6 +112,12 @@ public interface FieldType {
         }
 
         @Override
+        public InstanceData getJavaClass() {
+            final ClassFile classFile = VirtualMachine.getClassLoader().loadClass(toString());
+            return VirtualMachine.getInstancePool().addClassFile(classFile);
+        }
+
+        @Override
         public String toString() {
             return "[" + type.toString();
         }
@@ -104,6 +126,8 @@ public interface FieldType {
     int getSize();
 
     byte[] getDefaultValue();
+
+    InstanceData getJavaClass();
 
     static FieldType parseType(final ByteBuffer buf) {
         final char typeChar = buf.getChar();

@@ -5,27 +5,27 @@ import fr.neatmonster.neatjvm.InstanceData;
 
 public class java_lang_Compiler {
 
-    public static InstanceData command(final ClassData instance, final InstanceData arg0) {
+    public static InstanceData command(ClassData instance, InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static boolean compileClass(final ClassData instance, final InstanceData arg0) {
+    public static boolean compileClass(ClassData instance, InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static boolean compileClasses(final ClassData instance, final InstanceData arg0) {
+    public static boolean compileClasses(ClassData instance, InstanceData arg0) {
         throw new UnsupportedOperationException();
     }
 
-    public static void disable(final ClassData instance) {
+    public static void disable(ClassData instance) {
         throw new UnsupportedOperationException();
     }
 
-    public static void enable(final ClassData instance) {
+    public static void enable(ClassData instance) {
         throw new UnsupportedOperationException();
     }
 
-    public static void initialize(final ClassData instance) {
+    public static void initialize(ClassData instance) {
         throw new UnsupportedOperationException();
     }
 }

@@ -15,12 +15,7 @@ import fr.neatmonster.neatjvm.format.MethodInfo;
 import fr.neatmonster.neatjvm.format.Modifier;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute;
 import fr.neatmonster.neatjvm.format.attribute.CodeAttribute.ExceptionHandler;
-import fr.neatmonster.neatjvm.format.constant.ClassConstant;
-import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
-import fr.neatmonster.neatjvm.format.constant.FloatConstant;
-import fr.neatmonster.neatjvm.format.constant.IntegerConstant;
-import fr.neatmonster.neatjvm.format.constant.LongConstant;
-import fr.neatmonster.neatjvm.format.constant.StringConstant;
+import fr.neatmonster.neatjvm.format.constant.*;
 
 public class Thread {
     public enum ThreadState {
@@ -74,6 +69,10 @@ public class Thread {
         this.priority = priority;
     }
 
+    public InstanceData getException() {
+        return exception;
+    }
+
     public void start(final CodeAttribute code) {
         this.code = code;
         classFile = code.getClassFile();
@@ -85,7 +84,7 @@ public class Thread {
         state = ThreadState.RUNNABLE;
     }
 
-    public void tick() {
+    public Object tick() {
         VirtualMachine.setCurrentThread(this);
 
         final ClassLoader classLoader = VirtualMachine.getClassLoader();
@@ -99,22 +98,26 @@ public class Thread {
                     continue;
 
                 final ClassFile catchClass = handler.getCatchType();
-                if (catchClass == null || exception.getClassFile().extendsClass(catchClass)) {
-                    frame.pushReference(exception.getReference());
-                    pc = handler.getHandler();
-                    exception = null;
-                    return;
-                }
+                if (catchClass != null && !exception.getClassFile().extendsClass(catchClass))
+                    continue;
+
+                frame.pushReference(exception.getReference());
+                pc = handler.getHandler();
+                exception = null;
+                return null;
             }
 
             popFrame();
-            final StackFrame prevFrame = getTopFrame();
+
+            final StackFrame prevFrame = getFrame();
             if (prevFrame == null) {
                 System.err.println("Thread " + id + " terminated w/ exception " + exception.getClassFile().getName());
                 state = ThreadState.TERMINATED;
             } else
                 contextSwitchDown(prevFrame);
-            return;
+
+            releaseMonitor();
+            return null;
         }
 
         frame.pc = pc;
@@ -200,7 +203,7 @@ public class Thread {
                 }
 
                 else if (constant instanceof ClassConstant) {
-                    final int value = instancePool.getJavaClass(((ClassConstant) constant).resolve()).getReference();
+                    final int value = instancePool.addClassFile(((ClassConstant) constant).resolve()).getReference();
                     frame.pushReference(value);
                 }
 
@@ -236,7 +239,7 @@ public class Thread {
                 }
 
                 else if (constant instanceof ClassConstant) {
-                    final int value = instancePool.getJavaClass(((ClassConstant) constant).resolve()).getReference();
+                    final int value = instancePool.addClassFile(((ClassConstant) constant).resolve()).getReference();
                     frame.pushReference(value);
                 }
 
@@ -1177,7 +1180,7 @@ public class Thread {
                     index = index << 8 | codeBytes[pc++] & 0xff;
                 int const_ = codeBytes[pc++];
                 if (wide)
-                    const_ = const_ << 8 | codeBytes[pc++];
+                    const_ = const_ << 8 | codeBytes[pc++] & 0xff;
                 frame.storeInt(index, frame.getInt(index) + const_);
                 break;
             }
@@ -1341,9 +1344,9 @@ public class Thread {
             case 0x9d: // ifgt
             case 0x9e: // ifle
             {
-                final byte branchbyte1 = codeBytes[pc++];
-                final byte branchbyte2 = codeBytes[pc++];
-                final int offset = branchbyte1 << 8 | branchbyte2;
+                final int branchbyte1 = codeBytes[pc++] & 0xff;
+                final int branchbyte2 = codeBytes[pc++] & 0xff;
+                final int offset = (short) (branchbyte1 << 8 | branchbyte2);
 
                 final int value = frame.popInt();
 
@@ -1365,9 +1368,9 @@ public class Thread {
             case 0xa3: // if_icmpgt
             case 0xa4: // if_icmple
             {
-                final byte branchbyte1 = codeBytes[pc++];
-                final byte branchbyte2 = codeBytes[pc++];
-                final int offset = branchbyte1 << 8 | branchbyte2;
+                final int branchbyte1 = codeBytes[pc++] & 0xff;
+                final int branchbyte2 = codeBytes[pc++] & 0xff;
+                final int offset = (short) (branchbyte1 << 8 | branchbyte2);
 
                 final int value2 = frame.popInt();
                 final int value1 = frame.popInt();
@@ -1386,9 +1389,9 @@ public class Thread {
             case 0xa5: // if_acmpeq
             case 0xa6: // if_acmpne
             {
-                final byte branchbyte1 = codeBytes[pc++];
-                final byte branchbyte2 = codeBytes[pc++];
-                final int offset = branchbyte1 << 8 | branchbyte2;
+                final int branchbyte1 = codeBytes[pc++] & 0xff;
+                final int branchbyte2 = codeBytes[pc++] & 0xff;
+                final int offset = (short) (branchbyte1 << 8 | branchbyte2);
 
                 final int value2 = frame.popReference();
                 final int value1 = frame.popReference();
@@ -1405,18 +1408,18 @@ public class Thread {
              */
             case 0xa7: // goto
             {
-                final byte branchbyte1 = codeBytes[pc++];
-                final byte branchbyte2 = codeBytes[pc++];
-                final int offset = branchbyte1 << 8 | branchbyte2;
+                final int branchbyte1 = codeBytes[pc++] & 0xff;
+                final int branchbyte2 = codeBytes[pc++] & 0xff;
+                final int offset = (short) (branchbyte1 << 8 | branchbyte2);
 
                 pc += offset - 3;
                 break;
             }
             case 0xa8: // jsr
             {
-                final byte branchbyte1 = codeBytes[pc++];
-                final byte branchbyte2 = codeBytes[pc++];
-                final int offset = branchbyte1 << 8 | branchbyte2;
+                final int branchbyte1 = codeBytes[pc++] & 0xff;
+                final int branchbyte2 = codeBytes[pc++] & 0xff;
+                final int offset = (short) (branchbyte1 << 8 | branchbyte2);
 
                 frame.pushInt(pc);
                 pc += offset - 3;
@@ -1437,22 +1440,22 @@ public class Thread {
                     ++pc;
 
                 int default_ = 0;
-                default_ |= codeBytes[pc++] << 24;
-                default_ |= codeBytes[pc++] << 16;
-                default_ |= codeBytes[pc++] << 8;
-                default_ |= codeBytes[pc++];
+                default_ |= (codeBytes[pc++] & 0xff) << 24;
+                default_ |= (codeBytes[pc++] & 0xff) << 16;
+                default_ |= (codeBytes[pc++] & 0xff) << 8;
+                default_ |= codeBytes[pc++] & 0xff;
 
                 int low = 0;
-                low |= codeBytes[pc++] << 24;
-                low |= codeBytes[pc++] << 16;
-                low |= codeBytes[pc++] << 8;
+                low |= (codeBytes[pc++] & 0xff) << 24;
+                low |= (codeBytes[pc++] & 0xff) << 16;
+                low |= (codeBytes[pc++] & 0xff) << 8;
                 low |= codeBytes[pc++];
 
                 int high = 0;
-                high |= codeBytes[pc++] << 24;
-                high |= codeBytes[pc++] << 16;
-                high |= codeBytes[pc++] << 8;
-                high |= codeBytes[pc++];
+                high |= (codeBytes[pc++] & 0xff) << 24;
+                high |= (codeBytes[pc++] & 0xff) << 16;
+                high |= (codeBytes[pc++] & 0xff) << 8;
+                high |= codeBytes[pc++] & 0xff;
 
                 final int tableAddr = pc;
 
@@ -1463,10 +1466,10 @@ public class Thread {
                     index = tableAddr + (index - low) * 4;
 
                     int offset = 0;
-                    offset |= codeBytes[index] << 24;
-                    offset |= codeBytes[index + 1] << 16;
-                    offset |= codeBytes[index + 2] << 8;
-                    offset |= codeBytes[index + 3];
+                    offset |= (codeBytes[index] & 0xff) << 24;
+                    offset |= (codeBytes[index + 1] & 0xff) << 16;
+                    offset |= (codeBytes[index + 2] & 0xff) << 8;
+                    offset |= codeBytes[index + 3] & 0xff;
 
                     pc = instrAddr + offset;
                 }
@@ -1480,30 +1483,30 @@ public class Thread {
                     ++pc;
 
                 int default_ = 0;
-                default_ |= codeBytes[pc++] << 24;
-                default_ |= codeBytes[pc++] << 16;
-                default_ |= codeBytes[pc++] << 8;
-                default_ |= codeBytes[pc++];
+                default_ |= (codeBytes[pc++] & 0xff) << 24;
+                default_ |= (codeBytes[pc++] & 0xff) << 16;
+                default_ |= (codeBytes[pc++] & 0xff) << 8;
+                default_ |= codeBytes[pc++] & 0xff;
 
                 int npairs = 0;
-                npairs |= codeBytes[pc++] << 24;
-                npairs |= codeBytes[pc++] << 16;
-                npairs |= codeBytes[pc++] << 8;
-                npairs |= codeBytes[pc++];
+                npairs |= (codeBytes[pc++] & 0xff) << 24;
+                npairs |= (codeBytes[pc++] & 0xff) << 16;
+                npairs |= (codeBytes[pc++] & 0xff) << 8;
+                npairs |= codeBytes[pc++] & 0xff;
 
                 final int key = frame.popInt();
                 for (int i = 0; i < npairs; ++i) {
                     int match = 0;
-                    match |= codeBytes[pc++] << 24;
-                    match |= codeBytes[pc++] << 16;
-                    match |= codeBytes[pc++] << 8;
-                    match |= codeBytes[pc++];
+                    match |= (codeBytes[pc++] & 0xff) << 24;
+                    match |= (codeBytes[pc++] & 0xff) << 16;
+                    match |= (codeBytes[pc++] & 0xff) << 8;
+                    match |= codeBytes[pc++] & 0xff;
 
                     int offset = 0;
-                    offset |= codeBytes[pc++] << 24;
-                    offset |= codeBytes[pc++] << 16;
-                    offset |= codeBytes[pc++] << 8;
-                    offset |= codeBytes[pc++];
+                    offset |= (codeBytes[pc++] & 0xff) << 24;
+                    offset |= (codeBytes[pc++] & 0xff) << 16;
+                    offset |= (codeBytes[pc++] & 0xff) << 8;
+                    offset |= codeBytes[pc++] & 0xff;
 
                     if (key == match) {
                         pc = instrAddr + offset;
@@ -1516,101 +1519,101 @@ public class Thread {
             }
             case 0xac: // ireturn
             {
-                releaseMonitor();
-
                 final int value = frame.popInt();
 
                 popFrame();
 
-                final StackFrame prevFrame = getTopFrame();
+                final StackFrame prevFrame = getFrame();
                 if (prevFrame == null)
                     state = ThreadState.TERMINATED;
                 else {
                     prevFrame.pushInt(value);
                     contextSwitchDown(prevFrame);
                 }
-                break;
+
+                releaseMonitor();
+                return value;
             }
             case 0xad: // lreturn
             {
-                releaseMonitor();
-
                 final long value = frame.popLong();
 
                 popFrame();
 
-                final StackFrame prevFrame = getTopFrame();
+                final StackFrame prevFrame = getFrame();
                 if (prevFrame == null)
                     state = ThreadState.TERMINATED;
                 else {
                     prevFrame.pushLong(value);
                     contextSwitchDown(prevFrame);
                 }
-                break;
+
+                releaseMonitor();
+                return value;
             }
             case 0xae: // freturn
             {
-                releaseMonitor();
-
                 final float value = frame.popFloat();
 
                 popFrame();
 
-                final StackFrame prevFrame = getTopFrame();
+                final StackFrame prevFrame = getFrame();
                 if (prevFrame == null)
                     state = ThreadState.TERMINATED;
                 else {
                     prevFrame.pushFloat(value);
                     contextSwitchDown(prevFrame);
                 }
-                break;
+
+                releaseMonitor();
+                return value;
             }
             case 0xaf: // dreturn
             {
-                releaseMonitor();
-
                 final double value = frame.popDouble();
 
                 popFrame();
 
-                final StackFrame prevFrame = getTopFrame();
+                final StackFrame prevFrame = getFrame();
                 if (prevFrame == null)
                     state = ThreadState.TERMINATED;
                 else {
                     prevFrame.pushDouble(value);
                     contextSwitchDown(prevFrame);
                 }
-                break;
+
+                releaseMonitor();
+                return value;
             }
             case 0xb0: // areturn
             {
-                releaseMonitor();
-
                 final int value = frame.popReference();
 
                 popFrame();
 
-                final StackFrame prevFrame = getTopFrame();
+                final StackFrame prevFrame = getFrame();
                 if (prevFrame == null)
                     state = ThreadState.TERMINATED;
                 else {
                     prevFrame.pushReference(value);
                     contextSwitchDown(prevFrame);
                 }
-                break;
+
+                releaseMonitor();
+                return instancePool.getInstance(value);
             }
             case 0xb1: // return
             {
-                releaseMonitor();
-
                 popFrame();
 
-                final StackFrame prevFrame = getTopFrame();
+                final StackFrame prevFrame = getFrame();
                 if (prevFrame == null)
                     state = ThreadState.TERMINATED;
                 else
                     contextSwitchDown(prevFrame);
-                break;
+
+                releaseMonitor();
+                return null;
             }
             /*
              * REFERENCES
@@ -1706,7 +1709,7 @@ public class Thread {
                 }
                 final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
 
-                method = instance.getClassFile().getDeclaredMethod(method.getName(), MethodInfo.getDescriptor(method));
+                method = instance.getClassFile().getMethod(method.getName(), MethodInfo.getDescriptor(method));
 
                 // TODO Throw IllegalAccessError, AbstractMethodError,
                 // UnsatisfiedLinkError, IncompatibleClassChangeError if needed
@@ -1719,7 +1722,7 @@ public class Thread {
 
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
                     try {
-                        final int[] values = nativeHandler.executeMethod(frame, method, instance);
+                        final int[] values = nativeHandler.executeMethod(this, method, instance);
                         if (values == null) {
                             System.err.println("Native virtual method " + method.getName() + " of class "
                                     + method.getClassFile().getName() + " is not implemented!");
@@ -1769,7 +1772,7 @@ public class Thread {
 
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
                     try {
-                        final int[] values = nativeHandler.executeMethod(frame, method, instance);
+                        final int[] values = nativeHandler.executeMethod(this, method, instance);
                         if (values == null) {
                             System.err.println("Native special method " + method.getName() + " of class "
                                     + method.getClassFile().getName() + " is not implemented!");
@@ -1809,15 +1812,16 @@ public class Thread {
 
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
                     try {
-                        final int[] values = nativeHandler.executeMethod(frame, method, null);
+                        final int[] values = nativeHandler.executeMethod(this, method, null);
                         if (values == null) {
                             System.err.println("Native static method " + method.getName() + " of class "
                                     + method.getClassFile().getName() + " is not implemented!");
                             System.exit(0);
                         }
 
-                        for (final int value : values)
+                        for (final int value : values) {
                             frame.pushInt(value);
+                        }
                     } catch (final InvocationTargetException e) {
                         final Throwable nativeException = e.getTargetException();
                         throwException(classLoader.loadClass(nativeException.getClass().getName()));
@@ -1860,7 +1864,7 @@ public class Thread {
 
                 if (Modifier.NATIVE.eval(method.getModifiers())) {
                     try {
-                        final int[] values = nativeHandler.executeMethod(frame, method, instance);
+                        final int[] values = nativeHandler.executeMethod(this, method, instance);
                         if (values == null) {
                             System.err.println("Native interface method " + method.getName() + " of class "
                                     + method.getClassFile().getName() + " is not implemented!");
@@ -1897,7 +1901,7 @@ public class Thread {
                 final int index = indexbyte1 << 8 | indexbyte2;
 
                 final ClassFile resolvedClass = ConstantInfo.getClassFile(classFile, index);
-                final int objectref = resolvedClass.newInstance();
+                final int objectref = resolvedClass.newInstance().getReference();
                 frame.pushReference(objectref);
                 break;
             }
@@ -1914,7 +1918,7 @@ public class Thread {
                 }
 
                 final ArrayClassFile arrayClass = (ArrayClassFile) classLoader.loadClass("[" + resolvedClass.getName());
-                final int arrayref = arrayClass.newInstance(count);
+                final int arrayref = arrayClass.newInstance(count).getReference();
                 frame.pushReference(arrayref);
                 break;
             }
@@ -1933,7 +1937,7 @@ public class Thread {
                 }
 
                 final ArrayClassFile arrayClass = (ArrayClassFile) classLoader.loadClass("[" + resolvedClass.getName());
-                final int arrayref = arrayClass.newInstance(count);
+                final int arrayref = arrayClass.newInstance(count).getReference();
                 frame.pushReference(arrayref);
                 break;
             }
@@ -1988,9 +1992,10 @@ public class Thread {
                 final int objectref = frame.popReference();
                 if (objectref == 0)
                     frame.pushInt(0);
-                final ClassFile instanceClass = instancePool.getInstance(objectref).getClassFile();
-
-                frame.pushInt(instanceClass.isInstance(resolvedClass) ? 1 : 0);
+                else {
+                    final ClassFile instanceClass = instancePool.getInstance(objectref).getClassFile();
+                    frame.pushInt(instanceClass.isInstance(resolvedClass) ? 1 : 0);
+                }
                 break;
             }
             case 0xc2: // monitorenter
@@ -2056,8 +2061,7 @@ public class Thread {
                         length /= counts[i + 1];
                     }
                     for (int j = 0; j < count; ++j) {
-                        final ArrayInstanceData arrayInstance = (ArrayInstanceData) instancePool
-                                .getInstance(((ArrayClassFile) arrayClass).newInstance(length));
+                        final ArrayInstanceData arrayInstance = ((ArrayClassFile) arrayClass).newInstance(length);
                         if (i > 0)
                             for (int k = 0; k < length; ++k)
                                 heapSpace.putReference(arrayInstance.dataStart + k * 4,
@@ -2072,9 +2076,9 @@ public class Thread {
             }
             case 0xc6: // ifnull
             {
-                final byte branchbyte1 = codeBytes[pc++];
-                final byte branchbyte2 = codeBytes[pc++];
-                final int offset = branchbyte1 << 8 | branchbyte2;
+                final int branchbyte1 = codeBytes[pc++] & 0xff;
+                final int branchbyte2 = codeBytes[pc++] & 0xff;
+                final int offset = (short) (branchbyte1 << 8 | branchbyte2);
 
                 final int value = frame.popReference();
                 if (value == 0)
@@ -2083,9 +2087,9 @@ public class Thread {
             }
             case 0xc7: // ifnonnull
             {
-                final byte branchbyte1 = codeBytes[pc++];
-                final byte branchbyte2 = codeBytes[pc++];
-                final int offset = branchbyte1 << 8 | branchbyte2;
+                final int branchbyte1 = codeBytes[pc++] & 0xff;
+                final int branchbyte2 = codeBytes[pc++] & 0xff;
+                final int offset = (short) (branchbyte1 << 8 | branchbyte2);
 
                 final int value = frame.popReference();
                 if (value != 0)
@@ -2095,10 +2099,10 @@ public class Thread {
             case 0xc8: // goto_w
             {
                 int offset = 0;
-                offset |= codeBytes[pc++] << 24;
-                offset |= codeBytes[pc++] << 16;
-                offset |= codeBytes[pc++] << 8;
-                offset |= codeBytes[pc++];
+                offset |= (codeBytes[pc++] & 0xff) << 24;
+                offset |= (codeBytes[pc++] & 0xff) << 16;
+                offset |= (codeBytes[pc++] & 0xff) << 8;
+                offset |= codeBytes[pc++] & 0xff;
 
                 pc += offset - 5;
                 break;
@@ -2106,10 +2110,10 @@ public class Thread {
             case 0xc9: // jsr_w
             {
                 int offset = 0;
-                offset |= codeBytes[pc++] << 24;
-                offset |= codeBytes[pc++] << 16;
-                offset |= codeBytes[pc++] << 8;
-                offset |= codeBytes[pc++];
+                offset |= (codeBytes[pc++] & 0xff) << 24;
+                offset |= (codeBytes[pc++] & 0xff) << 16;
+                offset |= (codeBytes[pc++] & 0xff) << 8;
+                offset |= codeBytes[pc++] & 0xff;
 
                 frame.pushInt(pc);
                 pc += offset - 5;
@@ -2120,6 +2124,7 @@ public class Thread {
                 System.exit(0);
                 break;
         }
+        return null;
     }
 
     private void contextSwitchUp(final StackFrame newFrame, final CodeAttribute newCode) {
@@ -2151,19 +2156,21 @@ public class Thread {
     }
 
     private void throwException(final ClassFile classFile) {
-        final int objectref = classFile.newInstance();
-        final InstanceData instance = VirtualMachine.getInstancePool().getInstance(objectref);
-        throwException(instance);
+        throwException(classFile.newInstance());
     }
 
     private void throwException(final InstanceData instance) {
         exception = instance;
     }
 
-    private StackFrame getTopFrame() {
+    public StackFrame getFrame() {
         if (stack.isEmpty())
             return null;
         return stack.get(stack.size() - 1);
+    }
+
+    public List<StackFrame> getFrames() {
+        return stack;
     }
 
     private StackFrame pushFrame(final short maxStack, final short maxLocals) {

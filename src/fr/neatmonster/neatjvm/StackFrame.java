@@ -27,7 +27,7 @@ public class StackFrame {
 
     public void pushLong(final long value) {
         pushInt((int) value);
-        pushInt((int) (value >> 16));
+        pushInt((int) (value >> 32));
     }
 
     public void pushFloat(final float value) {
@@ -35,9 +35,7 @@ public class StackFrame {
     }
 
     public void pushDouble(final double value) {
-        final long bits = Double.doubleToRawLongBits(value);
-        pushInt((int) bits);
-        pushInt((int) (bits >> 16));
+        pushLong(Double.doubleToRawLongBits(value));
     }
 
     public void pushReference(final int value) {
@@ -49,8 +47,7 @@ public class StackFrame {
     }
 
     public long popLong() {
-        final int value = popInt() << 16;
-        return value | popInt();
+        return (long) popInt() << 32 | popInt() & 0xffffffffL;
     }
 
     public float popFloat() {
@@ -58,8 +55,7 @@ public class StackFrame {
     }
 
     public double popDouble() {
-        final int value = popInt() << 16;
-        return Double.longBitsToDouble(value | popInt());
+        return Double.longBitsToDouble(popLong());
     }
 
     public int popReference() {
@@ -76,7 +72,7 @@ public class StackFrame {
 
     public void storeLong(final int index, final long value) {
         storeInt(index, (int) value);
-        storeInt(index + 1, (int) (value >> 16));
+        storeInt(index + 1, (int) (value >> 32));
     }
 
     public void storeFloat(final int index, final float value) {
@@ -84,9 +80,7 @@ public class StackFrame {
     }
 
     public void storeDouble(final int index, final double value) {
-        final long bits = Double.doubleToRawLongBits(value);
-        storeInt(index, (int) bits);
-        storeInt(index + 1, (int) (bits >> 16));
+        storeLong(index, Double.doubleToRawLongBits(value));
     }
 
     public void storeReference(final int index, final int value) {
@@ -98,8 +92,7 @@ public class StackFrame {
     }
 
     public long getLong(final int index) {
-        final int value = getInt(index + 1) << 16;
-        return value | getInt(index);
+        return (long) getInt(index + 1) << 32 | getInt(index) & 0xffffffffL;
     }
 
     public float getFloat(final int index) {
@@ -107,8 +100,7 @@ public class StackFrame {
     }
 
     public double getDouble(final int index) {
-        final int value = getInt(index + 1) << 16;
-        return Double.longBitsToDouble(value | getInt(index));
+        return Double.longBitsToDouble(getLong(index));
     }
 
     public int getReference(final int index) {

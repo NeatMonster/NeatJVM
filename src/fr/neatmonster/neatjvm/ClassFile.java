@@ -6,13 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.neatmonster.neatjvm.InstanceData.ArrayInstanceData;
-import fr.neatmonster.neatjvm.Thread.ThreadState;
-import fr.neatmonster.neatjvm.format.AttributeInfo;
-import fr.neatmonster.neatjvm.format.ConstantInfo;
-import fr.neatmonster.neatjvm.format.FieldInfo;
+import fr.neatmonster.neatjvm.format.*;
 import fr.neatmonster.neatjvm.format.FieldType.BaseType;
-import fr.neatmonster.neatjvm.format.MethodInfo;
-import fr.neatmonster.neatjvm.format.Modifier;
 import fr.neatmonster.neatjvm.format.constant.DoubleConstant;
 import fr.neatmonster.neatjvm.format.constant.LongConstant;
 
@@ -34,8 +29,8 @@ public class ClassFile {
             return true;
         }
 
-        public int newInstance(final int length) {
-            return new ArrayInstanceData(this, length).getReference();
+        public ArrayInstanceData newInstance(final int length) {
+            return new ArrayInstanceData(this, length);
         }
     }
 
@@ -175,11 +170,7 @@ public class ClassFile {
         if (clinit == null)
             return;
         clinit.resolve();
-
-        final Thread thread = new Thread(VirtualMachine.getThreadPool().getNextThreadId());
-        thread.start(MethodInfo.getCode(clinit));
-        while (thread.getState() != ThreadState.TERMINATED)
-            thread.tick();
+        clinit.invoke(instance);
     }
 
     public AttributeInfo[] getAttributes() {
@@ -201,7 +192,7 @@ public class ClassFile {
             field.resolve();
             if (!field.getName().equals(name))
                 continue;
-            if (!field.getType().toString().equals(descriptor))
+            if (!descriptor.equals("*") && !field.getType().toString().equals(descriptor))
                 continue;
             return field;
         }
@@ -216,7 +207,7 @@ public class ClassFile {
             field.resolve();
             if (!field.getName().equals(name))
                 continue;
-            if (!field.getType().toString().equals(descriptor))
+            if (!descriptor.equals("*") && !field.getType().toString().equals(descriptor))
                 continue;
             return field;
         }
@@ -261,7 +252,7 @@ public class ClassFile {
             method.resolve();
             if (!method.getName().equals(name))
                 continue;
-            if (!MethodInfo.getDescriptor(method).equals(descriptor))
+            if (!descriptor.equals("*") && !MethodInfo.getDescriptor(method).equals(descriptor))
                 continue;
             return method;
         }
@@ -276,7 +267,7 @@ public class ClassFile {
             method.resolve();
             if (!method.getName().equals(name))
                 continue;
-            if (!MethodInfo.getDescriptor(method).equals(descriptor))
+            if (!descriptor.equals("*") && !MethodInfo.getDescriptor(method).equals(descriptor))
                 continue;
             return method;
         }
@@ -337,8 +328,8 @@ public class ClassFile {
         return Modifier.SYNTHETIC.eval(modifiers);
     }
 
-    public int newInstance() {
-        return new InstanceData(this).getReference();
+    public InstanceData newInstance() {
+        return new InstanceData(this);
     }
 
     public ClassData getInstance() {
@@ -346,7 +337,9 @@ public class ClassFile {
     }
 
     public boolean extendsClass(final ClassFile classFile) {
-        return equals(classFile) || superclass != null && superclass.extendsClass(classFile);
+        if (equals(classFile))
+            return true;
+        return superclass != null && superclass.extendsClass(classFile);
     }
 
     public boolean implementsClass(final ClassFile classFile) {
@@ -356,7 +349,8 @@ public class ClassFile {
         for (final ClassFile interfaceClass : interfaces)
             if (interfaceClass.implementsClass(classFile))
                 return true;
-        return false;
+
+        return superclass != null && superclass.implementsClass(classFile);
     }
 
     public boolean isInstance(final ClassFile classFile) {
